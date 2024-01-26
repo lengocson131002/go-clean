@@ -1,0 +1,21 @@
+info:
+  contact: {}
+paths:
+  /api/v1/auth/register:
+    get:
+      consumes:
+      - application/json
+      description: Get a crag by ID
+      parameters:
+      - description: Crag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a crag by ID
+      tags:
+      - Crag
+swagger: "2.0"

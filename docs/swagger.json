@@ -1,0 +1,33 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/v1/auth/register": {
+            "get": {
+                "description": "Get a crag by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crag"
+                ],
+                "summary": "Get a crag by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crag ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        }
+    }
+}
