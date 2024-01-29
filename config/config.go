@@ -2,29 +2,9 @@ package config
 
 import (
 	"github.com/lengocson131002/go-clean/pkg/env"
-	"github.com/lengocson131002/go-clean/pkg/logger"
-	"github.com/lengocson131002/go-clean/pkg/validation"
 )
 
-type BootstrapConfig struct {
-	Config    env.ConfigInterface
-	Logger    logger.LoggerInterface
-	Validator validation.Validator
-}
-
-func GetBootstrapConfig() *BootstrapConfig {
-	cfg := GetConfigure()
-	log := GetLogger()
-	validate := GetValidator()
-
-	return &BootstrapConfig{
-		Config:    cfg,
-		Logger:    log,
-		Validator: validate,
-	}
-}
-
-func GetDatabaseConfig(cfg env.ConfigInterface) *PostgresConfig {
+func GetDatabaseConfig(cfg env.Configure) *PostgresConfig {
 	username := cfg.GetString("DB_USERNAME")
 	password := cfg.GetString("DB_PASSWORD")
 	host := cfg.GetString("DB_HOST")
@@ -48,7 +28,7 @@ func GetDatabaseConfig(cfg env.ConfigInterface) *PostgresConfig {
 	}
 }
 
-func GetServerConfig(cfg env.ConfigInterface) *ServerConfig {
+func GetServerConfig(cfg env.Configure) *ServerConfig {
 	name := cfg.GetString("APP_NAME")
 	version := cfg.GetString("APP_VERSION")
 	port := cfg.GetInt("APP_PORT")

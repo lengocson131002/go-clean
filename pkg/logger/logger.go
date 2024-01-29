@@ -1,6 +1,6 @@
 package logger
 
-type LoggerInterface interface {
+type Logger interface {
 	Trace(message string, args ...interface{})
 	Debug(message string, args ...interface{})
 	Info(message string, args ...interface{})

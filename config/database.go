@@ -26,7 +26,7 @@ type PostgresConfig struct {
 
 // GORM
 
-func GetDatabase(p *PostgresConfig, logger logger.LoggerInterface) *gorm.DB {
+func GetDatabase(p *PostgresConfig, logger logger.Logger) *gorm.DB {
 
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", p.Host, p.Port, p.Username, p.Password, p.Database, p.SslMode)
 
@@ -58,7 +58,7 @@ func GetDatabase(p *PostgresConfig, logger logger.LoggerInterface) *gorm.DB {
 }
 
 type logWriter struct {
-	Logger logger.LoggerInterface
+	Logger logger.Logger
 }
 
 func (l *logWriter) Printf(message string, args ...interface{}) {

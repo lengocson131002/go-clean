@@ -11,9 +11,9 @@ type ViperConfig struct {
 	cfg *viper.Viper
 }
 
-func NewViperConfig(cfgFile string) *ViperConfig {
+func NewViperConfig() *ViperConfig {
 	viper := viper.New()
-	viper.SetConfigFile(cfgFile)
+	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 
@@ -106,4 +106,4 @@ func (c *ViperConfig) GetUint64(key string) uint64 {
 	return c.cfg.GetUint64(key)
 }
 
-var _ ConfigInterface = (*ViperConfig)(nil)
+var _ Configure = (*ViperConfig)(nil)

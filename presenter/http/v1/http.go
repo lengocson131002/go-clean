@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"time"
 
@@ -10,15 +9,10 @@ import (
 	fiberLog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/swagger"
 	"github.com/lengocson131002/go-clean/config"
-	"github.com/lengocson131002/go-clean/data/repo"
 	"github.com/lengocson131002/go-clean/docs"
-	"github.com/lengocson131002/go-clean/internal/usecase"
-	"github.com/lengocson131002/go-clean/pkg/database"
-	"github.com/lengocson131002/go-clean/pkg/validation"
 	"github.com/lengocson131002/go-clean/presenter/http/v1/controller"
 	"github.com/lengocson131002/go-clean/presenter/http/v1/errors"
 	"github.com/lengocson131002/go-clean/presenter/http/v1/middleware"
-	"github.com/lengocson131002/go-clean/presenter/http/v1/route"
 )
 
 // @title  CLEAN ARCHITECTURE DEMO
@@ -30,30 +24,9 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @BasePath /
-func RunServer(cfg *config.BootstrapConfig) error {
-	dbConfig := config.GetDatabaseConfig(cfg.Config)
-	db, err := config.GetDatabaseSqlx(dbConfig)
-	if err != nil {
-		cfg.Logger.Fatal("failed to connect to database %s", err.Error())
-	}
-
-	serverConfig := config.GetServerConfig(cfg.Config)
-
-	// repositories
-	userRepo := repo.NewUserRepository(database.GetSqlxGdbc(db))
-
-	// validator
-	validator := validation.NewGpValidator()
-
-	// usercases
-	userUseCase := usecase.NewUserUseCase(cfg.Logger, validator, userRepo)
-
-	// controllers
-	userController := controller.NewUserController(userUseCase, cfg.Logger)
+func NewServer(cfg *config.ServerConfig, userController *controller.UserController, authMiddleware *middleware.AuthMiddleware) *fiber.App {
 
 	// middlewares
-	authMiddleware := middleware.NewAuth(userUseCase, cfg.Logger)
-
 	app := fiber.New(fiber.Config{
 		ErrorHandler: errors.CustomErrorHandler,
 		JSONDecoder:  json.Unmarshal,
@@ -71,30 +44,28 @@ func RunServer(cfg *config.BootstrapConfig) error {
 		Output:       os.Stdout,
 	}))
 
-	// swagger
-
-	setSwagger(serverConfig)
+	// routes
+	setSwagger(cfg)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	userRoute := route.RouteConfig{
-		Root:           &v1,
-		UserController: userController,
-		AuthMiddleware: authMiddleware,
-	}
+	userRoute := v1.Group("/users")
+	userRoute.Post("/register", userController.Register)
+	userRoute.Get("/login", userController.Login)
+	userRoute.Delete("/logout", authMiddleware.Handle, userController.Logout)
+	userRoute.Get("/me", authMiddleware.Handle, userController.Current)
+	userRoute.Put("", authMiddleware.Handle, userController.Update)
 
-	userRoute.Setup()
+	return app
+}
 
-	// start the server
-	err = app.Listen(fmt.Sprintf(":%d", serverConfig.Port))
-	if err != nil {
-		cfg.Logger.Fatal("Failed to start server: %v", err)
-		return err
-	}
-
-	return nil
+type Router struct {
+	config         *config.ServerConfig
+	Root           *fiber.App
+	UserController *controller.UserController
+	AuthMiddleware middleware.AuthMiddleware
 }
 
 func setSwagger(s *config.ServerConfig) {

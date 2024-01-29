@@ -6,7 +6,7 @@ import (
 
 	"github.com/lengocson131002/go-clean/data/entity"
 	"github.com/lengocson131002/go-clean/internal/domain"
-	repo "github.com/lengocson131002/go-clean/internal/interfaces"
+	"github.com/lengocson131002/go-clean/internal/interfaces"
 	"github.com/lengocson131002/go-clean/pkg/database"
 	mapper "github.com/lengocson131002/go-clean/pkg/util"
 )
@@ -58,7 +58,7 @@ func NewUserRepository(g *database.Gdbc) *UserRepository {
 	return &UserRepository{g}
 }
 
-var _ repo.UserRepositoryInterface = (*UserRepository)(nil)
+var _ interfaces.UserRepositoryInterface = (*UserRepository)(nil)
 
 // CountById implements repo.UserRepositoryInterface.
 func (r *UserRepository) CountById(ctx context.Context, id string) (int64, error) {

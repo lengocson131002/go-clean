@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lengocson131002/go-clean/internal/domain"
 	"github.com/lengocson131002/go-clean/internal/domain/response"
-	repo "github.com/lengocson131002/go-clean/internal/interfaces"
+	"github.com/lengocson131002/go-clean/internal/interfaces"
 	"github.com/lengocson131002/go-clean/internal/model"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	mapper "github.com/lengocson131002/go-clean/pkg/util"
@@ -15,15 +15,15 @@ import (
 )
 
 type UserUseCase struct {
-	Log            logger.LoggerInterface
+	Log            logger.Logger
 	Validator      validation.Validator
-	UserRepository repo.UserRepositoryInterface
+	UserRepository interfaces.UserRepositoryInterface
 }
 
 func NewUserUseCase(
-	logger logger.LoggerInterface,
+	logger logger.Logger,
 	validate validation.Validator,
-	userRepository repo.UserRepositoryInterface) *UserUseCase {
+	userRepository interfaces.UserRepositoryInterface) *UserUseCase {
 	return &UserUseCase{
 		Log:            logger,
 		Validator:      validate,

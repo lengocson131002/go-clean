@@ -7,21 +7,31 @@ import (
 	"github.com/lengocson131002/go-clean/pkg/logger"
 )
 
-func NewAuth(userUserCase *usecase.UserUseCase, log logger.LoggerInterface) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		request := &model.VerifyUserRequest{Token: ctx.Get("Authorization", "NOT_FOUND")}
-		userUserCase.Log.Debug("Authorization : %s", request.Token)
+type AuthMiddleware struct {
+	userUseCase *usecase.UserUseCase
+	log         logger.Logger
+}
 
-		auth, err := userUserCase.Verify(ctx.UserContext(), request)
-		if err != nil {
-			userUserCase.Log.Warn("Failed find user by token : %+v", err)
-			return fiber.ErrUnauthorized
-		}
-
-		userUserCase.Log.Debug("User : %+v", auth.ID)
-		ctx.Locals("auth", auth)
-		return ctx.Next()
+func NewAuthMiddleware(userUserCase *usecase.UserUseCase, log logger.Logger) *AuthMiddleware {
+	return &AuthMiddleware{
+		userUseCase: userUserCase,
+		log:         log,
 	}
+}
+
+func (m *AuthMiddleware) Handle(ctx *fiber.Ctx) error {
+	request := &model.VerifyUserRequest{Token: ctx.Get("Authorization", "NOT_FOUND")}
+	m.log.Debug("Authorization : %s", request.Token)
+
+	auth, err := m.userUseCase.Verify(ctx.UserContext(), request)
+	if err != nil {
+		m.userUseCase.Log.Warn("Failed find user by token : %+v", err)
+		return fiber.ErrUnauthorized
+	}
+
+	m.log.Debug("User : %+v", auth.ID)
+	ctx.Locals("auth", auth)
+	return ctx.Next()
 }
 
 func GetUser(ctx *fiber.Ctx) *model.Auth {

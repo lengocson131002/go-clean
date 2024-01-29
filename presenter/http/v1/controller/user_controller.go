@@ -10,11 +10,11 @@ import (
 )
 
 type UserController struct {
-	Log     logger.LoggerInterface
+	Log     logger.Logger
 	UseCase *usecase.UserUseCase
 }
 
-func NewUserController(useCase *usecase.UserUseCase, logger logger.LoggerInterface) *UserController {
+func NewUserController(useCase *usecase.UserUseCase, logger logger.Logger) *UserController {
 	return &UserController{
 		Log:     logger,
 		UseCase: useCase,

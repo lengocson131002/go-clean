@@ -24,7 +24,7 @@ func NewLogrus() *LogrusLogger {
 	}
 }
 
-var _ LoggerInterface = (*LogrusLogger)(nil)
+var _ Logger = (*LogrusLogger)(nil)
 
 // Trace implements LoggerInterface.
 func (l *LogrusLogger) Trace(message string, args ...interface{}) {
