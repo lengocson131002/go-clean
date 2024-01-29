@@ -5,6 +5,8 @@ import (
 	response "github.com/lengocson131002/go-clean/internal/domain/response"
 )
 
+// DataResponse[T]
+// @Description Base Generic Response Body
 type DataResponse[T any] struct {
 	Status  int    `json:"-"`
 	Code    int    `json:"code"`

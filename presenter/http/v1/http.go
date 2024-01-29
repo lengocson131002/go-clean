@@ -29,7 +29,6 @@ import (
 // @contact.email leson131002@gmail.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @host localhost:8088
 // @BasePath /
 func RunServer(cfg *config.BootstrapConfig) error {
 	dbConfig := config.GetDatabaseConfig(cfg.Config)

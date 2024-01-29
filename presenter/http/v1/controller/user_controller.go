@@ -21,14 +21,14 @@ func NewUserController(useCase *usecase.UserUseCase, logger logger.LoggerInterfa
 	}
 }
 
-// GetCrag GetById swagger documentation
-// @Summary Get a crag by ID
-// @Description Get a crag by ID
-// @Tags Crag
-// @Accept json
-// @Produce json
-// @Param id path string true "Crag ID"
-// @Router /api/v1/auth/register [get]
+// Register user, return status code
+// @Summary Register user
+// @Tags Users
+// @Accepts json
+// @Produces json
+// @Param request body model.RegisterUserRequest true "RegisterUserRequest request"
+// @Success 200 {object} model.DataResponse[model.UserResponse]
+// @Router /api/v1/users/register [post]
 func (c *UserController) Register(ctx *fiber.Ctx) error {
 	request := new(model.RegisterUserRequest)
 	err := ctx.BodyParser(request)
@@ -47,6 +47,14 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 	return resp.JSON(ctx)
 }
 
+// @Summary Login
+// @Description Login User using ID and password
+// @Tags Users
+// @Accepts json
+// @Produces json
+// @Param request body model.LoginUserRequest true "LoginUserRequest request"
+// @Success 200 {object} model.DataResponse[model.UserResponse]
+// @Router /api/v1/users/login [get]
 func (c *UserController) Login(ctx *fiber.Ctx) error {
 	request := new(model.LoginUserRequest)
 	err := ctx.BodyParser(request)
@@ -65,6 +73,14 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 	return resp.JSON(ctx)
 }
 
+// @Summary Current user
+// @Description Get current user
+// @Tags Users
+// @Accepts json
+// @Produces json
+// @Param token header string true "Token string"
+// @Success 200 {object} model.DataResponse[model.UserResponse]
+// @Router /api/v1/users/me [get]
 func (c *UserController) Current(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
 
@@ -82,6 +98,14 @@ func (c *UserController) Current(ctx *fiber.Ctx) error {
 	return resp.JSON(ctx)
 }
 
+// @Summary Logout
+// @Description Log out user
+// @Tags Users
+// @Accepts json
+// @Produces json
+// @Param token header string true "Token string"
+// @Success 200 {object} model.DataResponse[bool]
+// @Router /api/v1/users/me [delete]
 func (c *UserController) Logout(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
 
@@ -99,6 +123,15 @@ func (c *UserController) Logout(ctx *fiber.Ctx) error {
 	return resp.JSON(ctx)
 }
 
+// @Summary Update current user
+// @Description Update current user
+// @Tags Users
+// @Accepts json
+// @Produces json
+// @Param token header string true "ID string"
+// @Param request body model.UpdateUserRequest true "UpdateUserRequest request"
+// @Success 200 {object} model.DataResponse[model.UserResponse]
+// @Router /api/v1/users [put]
 func (c *UserController) Update(ctx *fiber.Ctx) error {
 	auth := middleware.GetUser(ctx)
 

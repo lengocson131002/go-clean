@@ -18,5 +18,6 @@ func (r *RouteConfig) Setup() {
 	userRoute.Get("/login", r.UserController.Login)
 	userRoute.Delete("/logout", r.AuthMiddleware, r.UserController.Logout)
 	userRoute.Get("/me", r.AuthMiddleware, r.UserController.Current)
+	userRoute.Put("", r.AuthMiddleware, r.UserController.Update)
 
 }
