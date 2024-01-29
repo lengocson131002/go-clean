@@ -66,7 +66,6 @@ func (l *logWriter) Printf(message string, args ...interface{}) {
 }
 
 // SQLX
-
 func GetDatabaseSqlx(p *PostgresConfig) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", p.Host, p.Port, p.Username, p.Password, p.Database, p.SslMode)
 

@@ -13,6 +13,7 @@ import (
 	"github.com/lengocson131002/go-clean/data/repo"
 	"github.com/lengocson131002/go-clean/docs"
 	"github.com/lengocson131002/go-clean/internal/usecase"
+	"github.com/lengocson131002/go-clean/pkg/database"
 	"github.com/lengocson131002/go-clean/pkg/validation"
 	"github.com/lengocson131002/go-clean/presenter/http/v1/controller"
 	"github.com/lengocson131002/go-clean/presenter/http/v1/errors"
@@ -40,7 +41,7 @@ func RunServer(cfg *config.BootstrapConfig) error {
 	serverConfig := config.GetServerConfig(cfg.Config)
 
 	// repositories
-	userRepo := repo.NewUserRepository(db)
+	userRepo := repo.NewUserRepository(database.GetSqlxGdbc(db))
 
 	// validator
 	validator := validation.NewGpValidator()

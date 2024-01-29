@@ -7,9 +7,9 @@ import (
 	"github.com/lengocson131002/go-clean/internal/domain"
 	"github.com/lengocson131002/go-clean/internal/domain/response"
 	repo "github.com/lengocson131002/go-clean/internal/interfaces"
-	"github.com/lengocson131002/go-clean/internal/mapper"
 	"github.com/lengocson131002/go-clean/internal/model"
 	"github.com/lengocson131002/go-clean/pkg/logger"
+	mapper "github.com/lengocson131002/go-clean/pkg/util"
 	"github.com/lengocson131002/go-clean/pkg/validation"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,7 +38,7 @@ func (c *UserUseCase) Verify(ctx context.Context, request *model.VerifyUserReque
 		return nil, response.ErrBadRequest
 	}
 
-	user, err := c.UserRepository.FindByToken(request.Token)
+	user, err := c.UserRepository.FindByToken(ctx, request.Token)
 	if err != nil {
 		c.Log.Warn("Failed find user by token : %+v", err)
 		return nil, response.ErrBadRequest
@@ -56,14 +56,14 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserReq
 		return nil, response.ErrBadRequest
 	}
 
-	total, err := c.UserRepository.CountById(request.ID)
+	total, err := c.UserRepository.CountById(ctx, request.ID)
 	if err != nil {
 		c.Log.Warn("Failed count user from database : %+v", err)
 		return nil, response.ErrInternalServer
 	}
 
 	if total > 0 {
-		c.Log.Warn("User already exists : %+v", err)
+		c.Log.Warn("User already exists")
 		return nil, response.ErrorAccountExisted
 	}
 
@@ -79,13 +79,16 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserReq
 		Name:     request.Name,
 	}
 
-	if err := c.UserRepository.CreateUser(user); err != nil {
+	err = c.UserRepository.CreateUser(ctx, user)
+
+	if err != nil {
 		c.Log.Warn("Failed create user to database : %+v", err)
 		return nil, response.ErrInternalServer
 	}
 
-	return mapper.UserToResponse(user), nil
-	//
+	res := &model.UserResponse{}
+	err = mapper.BindingStruct(user, res)
+	return res, err
 }
 
 func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error) {
@@ -94,7 +97,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
 		return nil, response.ErrBadRequest
 	}
 
-	user, err := c.UserRepository.FindUserById(request.ID)
+	user, err := c.UserRepository.FindUserById(ctx, request.ID)
 	if err != nil {
 		c.Log.Warn("Failed find user by id : %+v", err)
 		return nil, response.ErrUnauthorized
@@ -105,13 +108,17 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
 		return nil, response.ErrUnauthorized
 	}
 
-	user.Token = uuid.New().String()
-	if err := c.UserRepository.UpdateUser(user); err != nil {
+	token := uuid.New().String()
+	user.Token = &token
+
+	if err := c.UserRepository.UpdateUser(ctx, user); err != nil {
 		c.Log.Warn("Failed save user : %+v", err)
 		return nil, response.ErrInternalServer
 	}
 
-	return mapper.UserToTokenResponse(user), nil
+	res := &model.UserResponse{}
+	err = mapper.BindingStruct(user, res)
+	return res, err
 }
 
 func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest) (*model.UserResponse, error) {
@@ -120,13 +127,15 @@ func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest
 		return nil, response.ErrBadRequest
 	}
 
-	user, err := c.UserRepository.FindUserById(request.ID)
+	user, err := c.UserRepository.FindUserById(ctx, request.ID)
 	if err != nil {
 		c.Log.Warn("Failed find user by id : %+v", err)
 		return nil, response.ErrNotFound
 	}
 
-	return mapper.UserToResponse(user), nil
+	res := &model.UserResponse{}
+	err = mapper.BindingStruct(user, res)
+	return res, err
 }
 
 func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserRequest) (bool, error) {
@@ -135,15 +144,15 @@ func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserReque
 		return false, response.ErrBadRequest
 	}
 
-	user, err := c.UserRepository.FindUserById(request.ID)
+	user, err := c.UserRepository.FindUserById(ctx, request.ID)
 	if err != nil {
 		c.Log.Warn("Failed find user by id : %+v", err)
 		return false, response.ErrNotFound
 	}
 
-	user.Token = ""
+	user.Token = nil
 
-	if err := c.UserRepository.UpdateUser(user); err != nil {
+	if err := c.UserRepository.UpdateUser(ctx, user); err != nil {
 		c.Log.Warn("Failed save user : %+v", err)
 		return false, response.ErrInternalServer
 	}
@@ -157,7 +166,7 @@ func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserReque
 		return nil, response.ErrBadRequest
 	}
 
-	user, err := c.UserRepository.FindUserById(request.ID)
+	user, err := c.UserRepository.FindUserById(ctx, request.ID)
 	if err != nil {
 		c.Log.Warn("Failed find user by id : %+v", err)
 		return nil, response.ErrNotFound
@@ -176,10 +185,12 @@ func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserReque
 		user.Password = string(password)
 	}
 
-	if err := c.UserRepository.UpdateUser(user); err != nil {
+	if err := c.UserRepository.UpdateUser(ctx, user); err != nil {
 		c.Log.Warn("Failed save user : %+v", err)
 		return nil, response.ErrInternalServer
 	}
 
-	return mapper.UserToResponse(user), nil
+	res := &model.UserResponse{}
+	err = mapper.BindingStruct(user, res)
+	return res, err
 }

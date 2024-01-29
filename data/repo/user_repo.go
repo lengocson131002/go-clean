@@ -1,60 +1,80 @@
 package repo
 
 import (
+	"context"
 	"time"
 
+	"github.com/lengocson131002/go-clean/data/entity"
 	"github.com/lengocson131002/go-clean/internal/domain"
 	repo "github.com/lengocson131002/go-clean/internal/interfaces"
 	"github.com/lengocson131002/go-clean/pkg/database"
+	mapper "github.com/lengocson131002/go-clean/pkg/util"
 )
 
 type UserRepository struct {
-	DB database.SqlGdbc
+	DB *database.Gdbc
 }
 
-func NewUserRepository(tds database.TxDataInterface) *UserRepository {
-	return &UserRepository{tds.GetTx()}
+// WithinTransaction implements repo.UserRepositoryInterface.
+func (ur *UserRepository) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
+	return ur.DB.WithinTransaction(ctx, txFunc)
+}
+
+// FindByToken implements repo.UserRepositoryInterface.
+func (ur *UserRepository) FindByToken(ctx context.Context, token string) (*domain.User, error) {
+	userEntity := &entity.UserEntity{}
+	err := ur.DB.Get(ctx, userEntity, "SELECT * FROM users WHERE token = $1", token)
+	if err != nil {
+		return nil, err
+	}
+	res := &domain.User{}
+	err = mapper.BindingStruct(userEntity, &res)
+	return res, err
+}
+
+// FindUserById implements repo.UserRepositoryInterface.
+func (ur *UserRepository) FindUserById(ctx context.Context, id string) (*domain.User, error) {
+	userEntity := &entity.UserEntity{}
+	err := ur.DB.Get(ctx, userEntity, "SELECT * FROM users WHERE id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+	res := &domain.User{}
+	err = mapper.BindingStruct(userEntity, &res)
+	return res, err
+}
+
+// UpdateUser implements repo.UserRepositoryInterface.
+func (ur *UserRepository) UpdateUser(ctx context.Context, user *domain.User) error {
+	_, err := ur.DB.Exec(ctx, "UPDATE users SET name=$1, password=$2, token=$3, updated_at=$4",
+		user.Name,
+		user.Password,
+		user.Token,
+		time.Now().UTC().UnixMilli())
+	return err
+}
+
+func NewUserRepository(g *database.Gdbc) *UserRepository {
+	return &UserRepository{g}
 }
 
 var _ repo.UserRepositoryInterface = (*UserRepository)(nil)
 
 // CountById implements repo.UserRepositoryInterface.
-func (r *UserRepository) CountById(id string) (int64, error) {
+func (r *UserRepository) CountById(ctx context.Context, id string) (int64, error) {
 	var total int64
-	err := r.DB.Get(&total, "SELECT * FROM users WHERE id = $1", id)
+	err := r.DB.Get(ctx, &total, "SELECT COUNT(*) FROM users WHERE id = $1", id)
 	return total, err
 }
 
 // CreateUser implements repo.UserRepositoryInterface.
-func (r *UserRepository) CreateUser(user *domain.User) error {
+func (r *UserRepository) CreateUser(ctx context.Context, user *domain.User) error {
 	sql := "INSERT INTO users(id, password, name, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"
-	_, err := r.DB.Exec(sql, user.ID, user.Password, user.Name, user.Token, time.Now().UTC().UnixMilli(), time.Now().UTC().UnixMilli())
+	_, err := r.DB.Exec(ctx, sql,
+		user.ID,
+		user.Password,
+		user.Name,
+		time.Now().UTC().UnixMilli(),
+		time.Now().UTC().UnixMilli())
 	return err
-}
-
-// FindByToken implements repo.UserRepositoryInterface.
-func (r *UserRepository) FindByToken(token string) (*domain.User, error) {
-	// userEntity := new(entity.UserEntity)
-	// err := r.db.Where("token = ?", token).First(userEntity).Error
-	// return mapper.ToUserDomain(userEntity), err
-	panic("failed")
-}
-
-// FindUserById implements repo.UserRepositoryInterface.
-func (r *UserRepository) FindUserById(id string) (*domain.User, error) {
-	// entity, err := r.FindById(id)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return mapper.ToUserDomain(entity), err
-	panic("failed")
-}
-
-// UpdateUser implements repo.UserRepositoryInterface.
-func (r *UserRepository) UpdateUser(user *domain.User) error {
-	// entity := mapper.ToUserEntity(user)
-	// err := r.Update(entity)
-	// return err
-	panic("failed")
 }

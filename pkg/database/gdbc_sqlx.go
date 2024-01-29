@@ -6,6 +6,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func GetSqlxGdbc(s *sqlx.DB) *Gdbc {
+	return &Gdbc{
+		&SqlxDBTx{s},
+	}
+}
+
 // SqlxDBx is the sqlx.DB based implementation of GDBC
 type SqlxDBTx struct {
 	DB *sqlx.DB
