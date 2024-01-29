@@ -48,6 +48,8 @@ func (c *UserUseCase) Verify(ctx context.Context, request *model.VerifyUserReque
 }
 
 func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserRequest) (*model.UserResponse, error) {
+	// begin traction
+
 	err := c.Validator.Validate(request)
 	if err != nil {
 		c.Log.Warn("Invalid request body : %+v", err)
@@ -83,6 +85,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserReq
 	}
 
 	return mapper.UserToResponse(user), nil
+	//
 }
 
 func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error) {

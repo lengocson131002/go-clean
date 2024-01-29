@@ -32,11 +32,15 @@ import (
 // @BasePath /
 func RunServer(cfg *config.BootstrapConfig) error {
 	dbConfig := config.GetDatabaseConfig(cfg.Config)
-	db := config.GetDatabase(dbConfig, cfg.Logger)
+	db, err := config.GetDatabaseSqlx(dbConfig)
+	if err != nil {
+		cfg.Logger.Fatal("failed to connect to database %s", err.Error())
+	}
+
 	serverConfig := config.GetServerConfig(cfg.Config)
 
 	// repositories
-	userRepo := repo.NewuserRepository(db)
+	userRepo := repo.NewUserRepository(db)
 
 	// validator
 	validator := validation.NewGpValidator()
@@ -84,7 +88,7 @@ func RunServer(cfg *config.BootstrapConfig) error {
 	userRoute.Setup()
 
 	// start the server
-	err := app.Listen(fmt.Sprintf(":%d", serverConfig.Port))
+	err = app.Listen(fmt.Sprintf(":%d", serverConfig.Port))
 	if err != nil {
 		cfg.Logger.Fatal("Failed to start server: %v", err)
 		return err

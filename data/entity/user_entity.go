@@ -1,12 +1,12 @@
 package entity
 
 type UserEntity struct {
-	ID        string `gorm:"column:id;primaryKey"`
-	Password  string `gorm:"column:password"`
-	Name      string `gorm:"column:name"`
-	Token     string `gorm:"column:token"`
-	CreatedAt int64  `gorm:"column:created_at;autoCreateTime:milli"`
-	UpdatedAt int64  `gorm:"column:updated_at;autoCreateTime:milli;autoUpdateTime:milli"`
+	ID        string `db:"id"`
+	Password  string `db:"password"`
+	Name      string `db:"name"`
+	Token     string `db:"token"`
+	CreatedAt int64  `db:"created_at"`
+	UpdatedAt int64  `db:"updated_at"`
 }
 
 func (u *UserEntity) TableName() string {

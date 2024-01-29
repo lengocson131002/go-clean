@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lengocson131002/go-clean/pkg/logger"
+	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
@@ -23,8 +24,7 @@ type PostgresConfig struct {
 	MaxLifeTimeConnection int //seconds
 }
 
-var db *gorm.DB
-var onceDb sync.Once
+// GORM
 
 func GetDatabase(p *PostgresConfig, logger logger.LoggerInterface) *gorm.DB {
 
@@ -53,6 +53,7 @@ func GetDatabase(p *PostgresConfig, logger logger.LoggerInterface) *gorm.DB {
 	connection.SetMaxIdleConns(p.IdleConnection)
 	connection.SetMaxOpenConns(p.MaxConnection)
 	connection.SetConnMaxLifetime(time.Second * time.Duration(p.MaxLifeTimeConnection))
+
 	return db
 }
 
@@ -62,4 +63,35 @@ type logWriter struct {
 
 func (l *logWriter) Printf(message string, args ...interface{}) {
 	l.Logger.Trace(message, args...)
+}
+
+// SQLX
+
+func GetDatabaseSqlx(p *PostgresConfig) (*sqlx.DB, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", p.Host, p.Port, p.Username, p.Password, p.Database, p.SslMode)
+
+	db, err := connectDatabase("postgres", dsn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// config connections
+	db.SetMaxIdleConns(p.IdleConnection)
+	db.SetMaxOpenConns(p.MaxConnection)
+	db.SetConnMaxLifetime(time.Second * time.Duration(p.MaxLifeTimeConnection))
+
+	return db, nil
+}
+
+func connectDatabase(driverName string, dsn string) (*sqlx.DB, error) {
+	db := sqlx.MustConnect(driverName, dsn)
+	err := db.Ping()
+	if err != nil {
+		if db != nil {
+			err = db.Close()
+		}
+		return nil, err
+	}
+	return db, err
 }

@@ -1,6 +1,8 @@
 package repo
 
-import "github.com/lengocson131002/go-clean/internal/domain"
+import (
+	"github.com/lengocson131002/go-clean/internal/domain"
+)
 
 type UserRepositoryInterface interface {
 	FindByToken(token string) (*domain.User, error)
