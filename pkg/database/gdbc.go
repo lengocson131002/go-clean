@@ -17,6 +17,7 @@ type SqlGdbc interface {
 	Select(dest interface{}, query string, args ...interface{}) error
 }
 
+// Used this in repositories
 type Gdbc struct {
 	sDB SqlGdbc
 }
