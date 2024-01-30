@@ -11,9 +11,13 @@ type ViperConfig struct {
 	cfg *viper.Viper
 }
 
-func NewViperConfig() *ViperConfig {
+type ConfigPath string
+
+type ConfigFile string
+
+func NewViperConfig(f *ConfigFile) *ViperConfig {
 	viper := viper.New()
-	viper.SetConfigFile(".env")
+	viper.SetConfigFile(string(*f))
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 
