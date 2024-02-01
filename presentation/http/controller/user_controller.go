@@ -2,10 +2,10 @@ package controller
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/lengocson131002/go-clean/api/middleware"
 	"github.com/lengocson131002/go-clean/domain"
 	"github.com/lengocson131002/go-clean/pkg/http"
 	"github.com/lengocson131002/go-clean/pkg/logger"
+	"github.com/lengocson131002/go-clean/presentation/http/middleware"
 )
 
 type UserController struct {
