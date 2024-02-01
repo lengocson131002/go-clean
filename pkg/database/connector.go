@@ -5,5 +5,5 @@ type DatabaseConnector interface {
 	// 1. drivername
 	// 2. dsn(connection string)
 	// 3. poolOptions: nil if no need to configure pool
-	Connect(drivername string, dns string, poolOptions *PoolOptions) (*Gdbc, error)
+	Connect(drivername string, dsn string, poolOptions *PoolOptions) (*Gdbc, error)
 }
