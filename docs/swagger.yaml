@@ -1,24 +1,6 @@
 basePath: /
 definitions:
-  model.DataResponse-bool:
-    properties:
-      code:
-        type: integer
-      data:
-        type: boolean
-      message:
-        type: string
-    type: object
-  model.DataResponse-model_UserResponse:
-    properties:
-      code:
-        type: integer
-      data:
-        $ref: '#/definitions/model.UserResponse'
-      message:
-        type: string
-    type: object
-  model.LoginUserRequest:
+  domain.LoginUserRequest:
     properties:
       id:
         maxLength: 100
@@ -30,7 +12,7 @@ definitions:
     - id
     - password
     type: object
-  model.RegisterUserRequest:
+  domain.RegisterUserRequest:
     properties:
       id:
         maxLength: 100
@@ -46,7 +28,7 @@ definitions:
     - name
     - password
     type: object
-  model.UpdateUserRequest:
+  domain.UpdateUserRequest:
     properties:
       name:
         maxLength: 100
@@ -55,7 +37,7 @@ definitions:
         maxLength: 100
         type: string
     type: object
-  model.UserResponse:
+  domain.UserResponse:
     properties:
       created_at:
         type: integer
@@ -67,6 +49,24 @@ definitions:
         type: string
       updated_at:
         type: integer
+    type: object
+  http.DataResponse-bool:
+    properties:
+      code:
+        type: integer
+      data:
+        type: boolean
+      message:
+        type: string
+    type: object
+  http.DataResponse-domain_UserResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/domain.UserResponse'
+      message:
+        type: string
     type: object
 info:
   contact:
@@ -94,12 +94,12 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.UpdateUserRequest'
+          $ref: '#/definitions/domain.UpdateUserRequest'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.DataResponse-model_UserResponse'
+            $ref: '#/definitions/http.DataResponse-domain_UserResponse'
       summary: Update current user
       tags:
       - Users
@@ -112,12 +112,12 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.LoginUserRequest'
+          $ref: '#/definitions/domain.LoginUserRequest'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.DataResponse-model_UserResponse'
+            $ref: '#/definitions/http.DataResponse-domain_UserResponse'
       summary: Login
       tags:
       - Users
@@ -134,7 +134,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.DataResponse-bool'
+            $ref: '#/definitions/http.DataResponse-bool'
       summary: Logout
       tags:
       - Users
@@ -150,7 +150,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.DataResponse-model_UserResponse'
+            $ref: '#/definitions/http.DataResponse-domain_UserResponse'
       summary: Current user
       tags:
       - Users
@@ -162,12 +162,12 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.RegisterUserRequest'
+          $ref: '#/definitions/domain.RegisterUserRequest'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.DataResponse-model_UserResponse'
+            $ref: '#/definitions/http.DataResponse-domain_UserResponse'
       summary: Register user
       tags:
       - Users
