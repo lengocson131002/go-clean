@@ -10,8 +10,8 @@ import (
 	"github.com/lengocson131002/go-clean/api/middleware"
 	"github.com/lengocson131002/go-clean/bootstrap"
 	"github.com/lengocson131002/go-clean/domain"
+	"github.com/lengocson131002/go-clean/infras/repository"
 	"github.com/lengocson131002/go-clean/pkg/logger"
-	"github.com/lengocson131002/go-clean/repository"
 	"github.com/lengocson131002/go-clean/usecase"
 
 	"go.uber.org/fx"
