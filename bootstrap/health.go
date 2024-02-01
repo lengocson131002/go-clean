@@ -10,3 +10,8 @@ type HealthCheckerEndpoint interface {
 type healthCheckerEndpoint struct {
 	healhChecker healthchecks.HealthChecker
 }
+
+func NewHealthChecker() {
+	// Init healt
+
+}
