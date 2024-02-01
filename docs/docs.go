@@ -45,7 +45,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.UpdateUserRequest"
+                            "$ref": "#/definitions/domain.UpdateUserRequest"
                         }
                     }
                 ],
@@ -53,7 +53,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.DataResponse-model_UserResponse"
+                            "$ref": "#/definitions/http.DataResponse-domain_UserResponse"
                         }
                     }
                 }
@@ -73,7 +73,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.LoginUserRequest"
+                            "$ref": "#/definitions/domain.LoginUserRequest"
                         }
                     }
                 ],
@@ -81,7 +81,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.DataResponse-model_UserResponse"
+                            "$ref": "#/definitions/http.DataResponse-domain_UserResponse"
                         }
                     }
                 }
@@ -107,7 +107,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.DataResponse-model_UserResponse"
+                            "$ref": "#/definitions/http.DataResponse-domain_UserResponse"
                         }
                     }
                 }
@@ -131,7 +131,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.DataResponse-bool"
+                            "$ref": "#/definitions/http.DataResponse-bool"
                         }
                     }
                 }
@@ -150,7 +150,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.RegisterUserRequest"
+                            "$ref": "#/definitions/domain.RegisterUserRequest"
                         }
                     }
                 ],
@@ -158,7 +158,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.DataResponse-model_UserResponse"
+                            "$ref": "#/definitions/http.DataResponse-domain_UserResponse"
                         }
                     }
                 }
@@ -166,35 +166,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.DataResponse-bool": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "data": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.DataResponse-model_UserResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "data": {
-                    "$ref": "#/definitions/model.UserResponse"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.LoginUserRequest": {
+        "domain.LoginUserRequest": {
             "type": "object",
             "required": [
                 "id",
@@ -211,7 +183,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.RegisterUserRequest": {
+        "domain.RegisterUserRequest": {
             "type": "object",
             "required": [
                 "id",
@@ -233,7 +205,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UpdateUserRequest": {
+        "domain.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "name": {
@@ -246,7 +218,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UserResponse": {
+        "domain.UserResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -263,6 +235,34 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "integer"
+                }
+            }
+        },
+        "http.DataResponse-bool": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.DataResponse-domain_UserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/domain.UserResponse"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         }
