@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/lengocson131002/go-clean/data/entity"
@@ -18,6 +19,10 @@ type UserRepository struct {
 // WithinTransaction implements repo.UserRepositoryInterface.
 func (ur *UserRepository) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
 	return ur.DB.WithinTransaction(ctx, txFunc)
+}
+
+func (ur *UserRepository) WithinTransactionOptions(ctx context.Context, txFunc func(ctx context.Context) error, txOptions *sql.TxOptions) error {
+	return ur.DB.WithinTransactionOptions(ctx, txFunc, txOptions)
 }
 
 // FindByToken implements repo.UserRepositoryInterface.

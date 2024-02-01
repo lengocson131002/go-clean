@@ -63,3 +63,7 @@ func (g *Gdbc) getConnection(ctx context.Context) SqlGdbc {
 func (g *Gdbc) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
 	return g.sDB.WithinTransaction(ctx, txFunc)
 }
+
+func (g *Gdbc) WithinTransactionOptions(ctx context.Context, txFunc func(ctx context.Context) error, txOptions *sql.TxOptions) error {
+	return g.sDB.WithinTransactionOptions(ctx, txFunc, txOptions)
+}

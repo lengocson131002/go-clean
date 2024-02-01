@@ -1,9 +1,13 @@
 package database
 
-import "context"
+import (
+	"context"
+	"database/sql"
+)
 
 type Transactor interface {
 	WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error
+	WithinTransactionOptions(ctx context.Context, txFunc func(ctx context.Context) error, txOption *sql.TxOptions) error
 }
 
 type TxKey struct{}
@@ -21,4 +25,5 @@ func ExtractTx(ctx context.Context) SqlGdbc {
 
 type EnableTransactor interface {
 	WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error
+	WithinTransactionOptions(ctx context.Context, txFunc func(ctx context.Context) error, txOption *sql.TxOptions) error
 }

@@ -33,7 +33,7 @@ func main() {
 		fx.Provide(config.GetDatabaseSqlx),
 		fx.Provide(database.GetSqlxGdbc),
 		fx.Provide(fx.Annotate(repo.NewUserRepository, fx.As(new(interfaces.UserRepositoryInterface)))),
-		fx.Provide(usecase.NewUserUseCase),
+		fx.Provide(fx.Annotate(usecase.NewUserUseCase, fx.As(new(usecase.UserUseCase)))),
 		fx.Provide(controller.NewUserController),
 		fx.Provide(middleware.NewAuthMiddleware),
 		fx.Provide(http.NewServer),

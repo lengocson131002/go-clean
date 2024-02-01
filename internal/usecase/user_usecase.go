@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/lengocson131002/go-clean/internal/domain"
@@ -14,7 +15,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserUseCase struct {
+type UserUseCase interface {
+	Verify(ctx context.Context, request *model.VerifyUserRequest) (*model.Auth, error)
+	Create(ctx context.Context, request *model.RegisterUserRequest) (*model.UserResponse, error)
+	Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error)
+	Current(ctx context.Context, request *model.GetUserRequest) (*model.UserResponse, error)
+	Logout(ctx context.Context, request *model.LogoutUserRequest) (bool, error)
+	Update(ctx context.Context, request *model.UpdateUserRequest) (*model.UserResponse, error)
+}
+
+type userUseCase struct {
 	Log            logger.Logger
 	Validator      validation.Validator
 	UserRepository interfaces.UserRepositoryInterface
@@ -23,15 +33,15 @@ type UserUseCase struct {
 func NewUserUseCase(
 	logger logger.Logger,
 	validate validation.Validator,
-	userRepository interfaces.UserRepositoryInterface) *UserUseCase {
-	return &UserUseCase{
+	userRepository interfaces.UserRepositoryInterface) *userUseCase {
+	return &userUseCase{
 		Log:            logger,
 		Validator:      validate,
 		UserRepository: userRepository,
 	}
 }
 
-func (c *UserUseCase) Verify(ctx context.Context, request *model.VerifyUserRequest) (*model.Auth, error) {
+func (c *userUseCase) Verify(ctx context.Context, request *model.VerifyUserRequest) (*model.Auth, error) {
 	err := c.Validator.Validate(request)
 	if err != nil {
 		c.Log.Warn("Invalid request body : %+v", err)
@@ -47,7 +57,7 @@ func (c *UserUseCase) Verify(ctx context.Context, request *model.VerifyUserReque
 	return &model.Auth{ID: user.ID}, nil
 }
 
-func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserRequest) (*model.UserResponse, error) {
+func (c *userUseCase) Create(ctx context.Context, request *model.RegisterUserRequest) (*model.UserResponse, error) {
 	// begin traction
 
 	err := c.Validator.Validate(request)
@@ -79,7 +89,12 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserReq
 		Name:     request.Name,
 	}
 
-	err = c.UserRepository.CreateUser(ctx, user)
+	err = c.UserRepository.WithinTransactionOptions(ctx, func(ctx context.Context) error {
+		return c.UserRepository.CreateUser(ctx, user)
+	}, &sql.TxOptions{
+		Isolation: sql.IsolationLevel(2),
+		ReadOnly:  false,
+	})
 
 	if err != nil {
 		c.Log.Warn("Failed create user to database : %+v", err)
@@ -91,7 +106,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserReq
 	return res, err
 }
 
-func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error) {
+func (c *userUseCase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.UserResponse, error) {
 	if err := c.Validator.Validate(request); err != nil {
 		c.Log.Warn("Invalid request body  : %+v", err)
 		return nil, response.ErrBadRequest
@@ -121,7 +136,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
 	return res, err
 }
 
-func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest) (*model.UserResponse, error) {
+func (c *userUseCase) Current(ctx context.Context, request *model.GetUserRequest) (*model.UserResponse, error) {
 	if err := c.Validator.Validate(request); err != nil {
 		c.Log.Warn("Invalid request body : %+v", err)
 		return nil, response.ErrBadRequest
@@ -138,7 +153,7 @@ func (c *UserUseCase) Current(ctx context.Context, request *model.GetUserRequest
 	return res, err
 }
 
-func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserRequest) (bool, error) {
+func (c *userUseCase) Logout(ctx context.Context, request *model.LogoutUserRequest) (bool, error) {
 	if err := c.Validator.Validate(request); err != nil {
 		c.Log.Warn("Invalid request body : %+v", err)
 		return false, response.ErrBadRequest
@@ -160,7 +175,7 @@ func (c *UserUseCase) Logout(ctx context.Context, request *model.LogoutUserReque
 	return true, nil
 }
 
-func (c *UserUseCase) Update(ctx context.Context, request *model.UpdateUserRequest) (*model.UserResponse, error) {
+func (c *userUseCase) Update(ctx context.Context, request *model.UpdateUserRequest) (*model.UserResponse, error) {
 	if err := c.Validator.Validate(request); err != nil {
 		c.Log.Warn("Invalid request body : %+v", err)
 		return nil, response.ErrBadRequest

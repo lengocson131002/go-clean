@@ -8,11 +8,11 @@ import (
 )
 
 type AuthMiddleware struct {
-	userUseCase *usecase.UserUseCase
+	userUseCase usecase.UserUseCase
 	log         logger.Logger
 }
 
-func NewAuthMiddleware(userUserCase *usecase.UserUseCase, log logger.Logger) *AuthMiddleware {
+func NewAuthMiddleware(userUserCase usecase.UserUseCase, log logger.Logger) *AuthMiddleware {
 	return &AuthMiddleware{
 		userUseCase: userUserCase,
 		log:         log,
@@ -25,7 +25,7 @@ func (m *AuthMiddleware) Handle(ctx *fiber.Ctx) error {
 
 	auth, err := m.userUseCase.Verify(ctx.UserContext(), request)
 	if err != nil {
-		m.userUseCase.Log.Warn("Failed find user by token : %+v", err)
+		m.log.Warn("Failed find user by token : %+v", err)
 		return fiber.ErrUnauthorized
 	}
 
