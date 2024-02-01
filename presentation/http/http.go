@@ -8,12 +8,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	fiberLog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/swagger"
-	"github.com/lengocson131002/go-clean/api/controller"
-	"github.com/lengocson131002/go-clean/api/handler"
-	"github.com/lengocson131002/go-clean/api/middleware"
-	"github.com/lengocson131002/go-clean/api/route"
 	"github.com/lengocson131002/go-clean/bootstrap"
 	"github.com/lengocson131002/go-clean/docs"
+	"github.com/lengocson131002/go-clean/presentation/http/controller"
+	"github.com/lengocson131002/go-clean/presentation/http/handler"
+	"github.com/lengocson131002/go-clean/presentation/http/middleware"
+	"github.com/lengocson131002/go-clean/presentation/http/route"
 )
 
 // @title  CLEAN ARCHITECTURE DEMO

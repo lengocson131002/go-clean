@@ -2,8 +2,8 @@ package route
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/lengocson131002/go-clean/api/controller"
-	"github.com/lengocson131002/go-clean/api/middleware"
+	"github.com/lengocson131002/go-clean/presentation/http/controller"
+	"github.com/lengocson131002/go-clean/presentation/http/middleware"
 )
 
 func RegisterUserRoute(root *fiber.Router, userController *controller.UserController, authMiddleware *middleware.AuthMiddleware) {
