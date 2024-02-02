@@ -40,12 +40,17 @@ func GetServerConfig(cfg env.Configure) *ServerConfig {
 	version := cfg.GetString("APP_VERSION")
 	port := cfg.GetInt("APP_PORT")
 	baseUrl := cfg.GetString("APP_BASE_URL")
+	grRunningThreshold := cfg.GetInt("APP_GR_RUNNING_THRESHOLD")
+	gcMaxPauseThresholdms := cfg.GetInt("APP_GC_PAUSE_THRESHOLD_MS")
 
 	return &ServerConfig{
-		Name:       name,
-		AppVersion: version,
-		Port:       port,
-		BaseURI:    baseUrl,
+		Name:               name,
+		AppVersion:         version,
+		Port:               port,
+		BaseURI:            baseUrl,
+		GrRunningThreshold: grRunningThreshold,
+		GcPauseThresholdMs: gcMaxPauseThresholdms,
+		EnvFilePath:        "./.env",
 	}
 
 }

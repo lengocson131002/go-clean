@@ -33,13 +33,16 @@ func (app *HealthCheckerApplication) runChecks(checks map[string]HealthCheckHand
 
 	wg.Add(len(checks))
 	for name, handler := range checks {
-		go handler.Check(name, &wg, checklist)
+		go func(name string, handler HealthCheckHandler) {
+			checklist <- handler.Check(name)
+			wg.Done()
+		}(name, handler)
 	}
 
 	go func() {
 		wg.Wait()
 		close(checklist)
-		result.Duration = time.Since(start).Seconds()
+		result.Duration = time.Since(start).Milliseconds()
 	}()
 
 	for chk := range checklist {

@@ -29,6 +29,7 @@ func main() {
 		fx.Provide(fx.Annotate(usecase.NewUserUseCase, fx.As(new(domain.UserUseCase)))),
 		fx.Provide(controller.NewUserController),
 		fx.Provide(middleware.NewAuthMiddleware),
+		fx.Provide(fx.Annotate(bootstrap.NewHealthEndpoint, fx.As(new(bootstrap.HealthCheckerEndpoint)))),
 		fx.Provide(api.NewHttpServer),
 		fx.Invoke(run),
 	).Run()
