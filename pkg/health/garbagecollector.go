@@ -1,11 +1,9 @@
-package health
+package healthchecks
 
 import (
 	"fmt"
 	"runtime"
 	"time"
-
-	healthchecks "github.com/lengocson131002/go-clean/pkg/health"
 )
 
 const (
@@ -28,8 +26,8 @@ func NewGarbageCollectionMaxChecker(threshold time.Duration) *GarbageCollectionM
 	}
 }
 
-// Check implements healthchecks.HealthCheckHandler.
-func (gc *GarbageCollectionMaxChecker) Check(name string) healthchecks.Integration {
+// Check implements HealthCheckHandler.
+func (gc *GarbageCollectionMaxChecker) Check(name string) Integration {
 	var (
 		status       = true
 		errorMessage = ""
@@ -47,7 +45,7 @@ func (gc *GarbageCollectionMaxChecker) Check(name string) healthchecks.Integrati
 		}
 	}
 
-	return healthchecks.Integration{
+	return Integration{
 		Status:       status,
 		Name:         name,
 		ResponseTime: time.Since(start).Milliseconds(),
@@ -56,4 +54,4 @@ func (gc *GarbageCollectionMaxChecker) Check(name string) healthchecks.Integrati
 
 }
 
-var _ healthchecks.HealthCheckHandler = (*GarbageCollectionMaxChecker)(nil)
+var _ HealthCheckHandler = (*GarbageCollectionMaxChecker)(nil)

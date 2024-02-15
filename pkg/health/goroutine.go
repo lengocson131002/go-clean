@@ -1,11 +1,9 @@
-package health
+package healthchecks
 
 import (
 	"fmt"
 	"runtime"
 	"time"
-
-	healthchecks "github.com/lengocson131002/go-clean/pkg/health"
 )
 
 const (
@@ -27,7 +25,7 @@ func NewGoroutineChecker(threshold int) *GoroutineChecker {
 
 // GoroutineCountCheck returns a Check that fails if too many goroutines are
 // running (which could indicate a resource leak).
-func (gr *GoroutineChecker) Check(name string) healthchecks.Integration {
+func (gr *GoroutineChecker) Check(name string) Integration {
 	var (
 		start        = time.Now()
 		grStatus     = true
@@ -40,7 +38,7 @@ func (gr *GoroutineChecker) Check(name string) healthchecks.Integration {
 		errorMessage = fmt.Sprintf("too many goroutines (%d > %d)", count, gr.threshold)
 	}
 
-	return healthchecks.Integration{
+	return Integration{
 		Name:         name,
 		Status:       grStatus,
 		ResponseTime: time.Since(start).Microseconds(),
@@ -48,4 +46,4 @@ func (gr *GoroutineChecker) Check(name string) healthchecks.Integration {
 	}
 }
 
-var _ healthchecks.HealthCheckHandler = (*GoroutineChecker)(nil)
+var _ HealthCheckHandler = (*GoroutineChecker)(nil)

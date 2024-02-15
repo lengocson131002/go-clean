@@ -1,12 +1,10 @@
-package health
+package healthchecks
 
 import (
 	"errors"
 	"fmt"
 	"os"
 	"time"
-
-	healthchecks "github.com/lengocson131002/go-clean/pkg/health"
 )
 
 type EnvChecker struct {
@@ -24,7 +22,7 @@ func NewEnvChecker(envFilePath string) *EnvChecker {
 }
 
 // Check implements healthchecks.HealthCheckHandler.
-func (ec *EnvChecker) Check(name string) healthchecks.Integration {
+func (ec *EnvChecker) Check(name string) Integration {
 	var (
 		start        = time.Now()
 		errorMessage = ""
@@ -35,7 +33,7 @@ func (ec *EnvChecker) Check(name string) healthchecks.Integration {
 		status = false
 		errorMessage = fmt.Sprintf("Env file %v does not exist", ec.envFilePath)
 	}
-	return healthchecks.Integration{
+	return Integration{
 		Name:         name,
 		Status:       status,
 		ResponseTime: time.Since(start).Milliseconds(),
@@ -43,4 +41,4 @@ func (ec *EnvChecker) Check(name string) healthchecks.Integration {
 	}
 }
 
-var _ healthchecks.HealthCheckHandler = (*EnvChecker)(nil)
+var _ HealthCheckHandler = (*EnvChecker)(nil)

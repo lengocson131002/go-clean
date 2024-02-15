@@ -1,4 +1,4 @@
-package health
+package healthchecks
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	healthchecks "github.com/lengocson131002/go-clean/pkg/health"
 	"github.com/valyala/fasthttp"
 )
 
@@ -42,7 +41,7 @@ func NewPingChecker(URL, method string, timeout time.Duration, body interface{},
 	return &pingChecker
 }
 
-func (p Ping) Check(name string) healthchecks.Integration {
+func (p Ping) Check(name string) Integration {
 	var (
 		start        = time.Now()
 		status       = true
@@ -53,7 +52,7 @@ func (p Ping) Check(name string) healthchecks.Integration {
 	if err != nil {
 		status = false
 		errorMessage = fmt.Sprintf("request failed: %s -> %s with error: %s", p.Method, p.URL, err)
-		return healthchecks.Integration{
+		return Integration{
 			Name:         name,
 			Error:        errorMessage,
 			Status:       status,
@@ -78,7 +77,7 @@ func (p Ping) Check(name string) healthchecks.Integration {
 	if err != nil || resp.StatusCode >= 500 {
 		status = false
 		errorMessage = fmt.Sprintf("request failed: %s -> %s with error: %s", p.Method, p.URL, err)
-		return healthchecks.Integration{
+		return Integration{
 			Name:         name,
 			Error:        errorMessage,
 			Status:       status,
@@ -86,7 +85,7 @@ func (p Ping) Check(name string) healthchecks.Integration {
 		}
 	}
 
-	return healthchecks.Integration{
+	return Integration{
 		Name:         name,
 		Status:       status,
 		ResponseTime: time.Since(start).Milliseconds(),

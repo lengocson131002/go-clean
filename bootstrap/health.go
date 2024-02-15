@@ -3,22 +3,21 @@ package bootstrap
 import (
 	"time"
 
-	"github.com/lengocson131002/go-clean/infras/health"
-	healthchecks "github.com/lengocson131002/go-clean/pkg/health"
+	health "github.com/lengocson131002/go-clean/pkg/health"
 )
 
 type HealthCheckerEndpoint interface {
-	LivenessCheckEndpoint() healthchecks.ApplicationHealthDetailed
-	ReadinessCheckEnpoint() healthchecks.ApplicationHealthDetailed
+	LivenessCheckEndpoint() health.ApplicationHealthDetailed
+	ReadinessCheckEnpoint() health.ApplicationHealthDetailed
 }
 
 type healthCheckerEndpoint struct {
-	healhChecker healthchecks.HealthChecker
+	healhChecker health.HealthChecker
 }
 
 func NewHealthEndpoint(cfg *ServerConfig) *healthCheckerEndpoint {
 	// Init health
-	healthChecker := healthchecks.NewHealthChecker(cfg.Name, cfg.AppVersion)
+	healthChecker := health.NewHealthChecker(cfg.Name, cfg.AppVersion)
 
 	// check Garbage Collector
 	gcChecker := health.NewGarbageCollectionMaxChecker(time.Millisecond * time.Duration(cfg.GcPauseThresholdMs))
@@ -41,10 +40,10 @@ func NewHealthEndpoint(cfg *ServerConfig) *healthCheckerEndpoint {
 	}
 }
 
-func (app healthCheckerEndpoint) LivenessCheckEndpoint() healthchecks.ApplicationHealthDetailed {
+func (app healthCheckerEndpoint) LivenessCheckEndpoint() health.ApplicationHealthDetailed {
 	return app.healhChecker.LivenessCheck()
 }
 
-func (app healthCheckerEndpoint) ReadinessCheckEnpoint() healthchecks.ApplicationHealthDetailed {
+func (app healthCheckerEndpoint) ReadinessCheckEnpoint() health.ApplicationHealthDetailed {
 	return app.healhChecker.RedinessCheck()
 }
