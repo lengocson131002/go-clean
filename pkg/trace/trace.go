@@ -1,66 +1,77 @@
+// Package trace provides an interface for distributed tracing
 package trace
 
 import (
 	"context"
 	"time"
 
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"github.com/lengocson131002/go-clean/pkg/metadata"
+	"github.com/lengocson131002/go-clean/pkg/transport/headers"
 )
 
-type TraceConfig struct {
-	ServiceName string
-	Endpoint    string
-	Headers     map[string]string
-}
-
-type Span interface {
-	Finish()
-	FinishWithOptions(opts FinishOptions)
-	SetOperationName(operationName string) Span
-	Tracer() Tracer
-}
-
-type FinishOptions struct {
-	FinishTime time.Time
-}
-
+// Tracer is an interface for distributed tracing.
 type Tracer interface {
-	StartHttpServerTracerSpan(ctx context.Context, operationName string) Span
-	StartGrpcServerTracerSpan(ctx context.Context, operationName string) Span
-	StartKafkaConsumerTracerSpan(ctx context.Context, operationName string) Span
-	StartDatasourceTraceSpan(ctx context.Context, operationName string) Span
+	// Start a trace
+	Start(ctx context.Context, name string) (context.Context, *Span)
+	// Finish the trace
+	Finish(*Span) error
+	// Read the traces
+	Read(...ReadOption) ([]*Span, error)
 }
 
-func Init(config TraceConfig) (*sdktrace.TracerProvider, error) {
-	secureOption := otlptracegrpc.WithInsecure()
+// SpanType describe the nature of the trace span.
+type SpanType int
 
-	exporter, err := otlptrace.New(
-		context.Background(),
-		otlptracegrpc.NewClient(
-			secureOption,
-			otlptracegrpc.WithEndpoint(config.Endpoint),
-			otlptracegrpc.WithHeaders(config.Headers),
-		),
-	)
+const (
+	// SpanTypeRequestInbound is a span created when serving a request.
+	SpanTypeRequestInbound SpanType = iota
+	// SpanTypeRequestOutbound is a span created when making a service call.
+	SpanTypeRequestOutbound
+)
 
-	if err != nil {
-		return nil, err
+// Span is used to record an entry.
+type Span struct {
+	// Start time
+	Started time.Time
+	// associated data
+	Metadata map[string]string
+	// Id of the trace
+	Trace string
+	// name of the span
+	Name string
+	// id of the span
+	Id string
+	// parent span id
+	Parent string
+	// Duration in nano seconds
+	Duration time.Duration
+	// Type
+	Type SpanType
+}
+
+// FromContext returns a span from context.
+func FromContext(ctx context.Context) (traceID string, parentSpanID string, isFound bool) {
+	traceID, traceOk := metadata.Get(ctx, headers.TraceIDKey)
+	microID, microOk := metadata.Get(ctx, headers.ID)
+
+	if !traceOk && !microOk {
+		isFound = false
+		return
 	}
 
-	traceProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
-		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(config.ServiceName))),
-	)
+	if !traceOk {
+		traceID = microID
+	}
 
-	otel.SetTracerProvider(traceProvider)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	parentSpanID, ok := metadata.Get(ctx, headers.SpanID)
 
-	return traceProvider, nil
+	return traceID, parentSpanID, ok
+}
+
+// ToContext saves the trace and span ids in the context.
+func ToContext(ctx context.Context, traceID, parentSpanID string) context.Context {
+	return metadata.MergeContext(ctx, map[string]string{
+		headers.TraceIDKey: traceID,
+		headers.SpanID:     parentSpanID,
+	}, true)
 }

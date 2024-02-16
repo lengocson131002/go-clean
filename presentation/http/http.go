@@ -29,6 +29,7 @@ func NewHttpServer(
 	cfg *bootstrap.ServerConfig,
 	userController *controller.UserController,
 	authMiddleware *middleware.AuthMiddleware,
+	tracingMiddleware *middleware.TracingMiddleware,
 	healCheckApp bootstrap.HealthCheckerEndpoint) *fiber.App {
 
 	// middlewares
@@ -37,6 +38,9 @@ func NewHttpServer(
 		JSONDecoder:  json.Unmarshal,
 		JSONEncoder:  json.Marshal,
 	})
+
+	// Tracing
+	app.Use(tracingMiddleware.Handle)
 
 	// fiber log
 	app.Use(fiberLog.New(fiberLog.Config{

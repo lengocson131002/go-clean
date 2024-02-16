@@ -52,5 +52,14 @@ func GetServerConfig(cfg env.Configure) *ServerConfig {
 		GcPauseThresholdMs: gcMaxPauseThresholdms,
 		EnvFilePath:        "./.env",
 	}
+}
 
+func GetTracingConfig(cfg env.Configure) *TraceConfig {
+	serviceName := cfg.GetString("TRACE_SERVICE_NAME")
+	endpoint := cfg.GetString("TRACE_ENDPOINT")
+
+	return &TraceConfig{
+		ServiceName: serviceName,
+		Endpoint:    endpoint,
+	}
 }
