@@ -6,16 +6,11 @@ import (
 	health "github.com/lengocson131002/go-clean/pkg/health"
 )
 
-type HealthCheckerEndpoint interface {
-	LivenessCheckEndpoint() health.ApplicationHealthDetailed
-	ReadinessCheckEnpoint() health.ApplicationHealthDetailed
-}
-
 type healthCheckerEndpoint struct {
 	healhChecker health.HealthChecker
 }
 
-func NewHealthEndpoint(cfg *ServerConfig) *healthCheckerEndpoint {
+func NewHealthChecker(cfg *ServerConfig) health.HealthChecker {
 	// Init health
 	healthChecker := health.NewHealthChecker(cfg.Name, cfg.AppVersion)
 
@@ -32,18 +27,8 @@ func NewHealthEndpoint(cfg *ServerConfig) *healthCheckerEndpoint {
 	healthChecker.AddReadinessCheck("env file checker", envFileChecker)
 
 	// check network
-	pingChecker := health.NewPingChecker("https://google.com", "GET", time.Millisecond*time.Duration(200), nil, nil)
+	pingChecker := health.NewPingChecker("http://google.com", "GET", time.Millisecond*time.Duration(200), nil, nil)
 	healthChecker.AddReadinessCheck("ping check", pingChecker)
 
-	return &healthCheckerEndpoint{
-		healhChecker: healthChecker,
-	}
-}
-
-func (app healthCheckerEndpoint) LivenessCheckEndpoint() health.ApplicationHealthDetailed {
-	return app.healhChecker.LivenessCheck()
-}
-
-func (app healthCheckerEndpoint) ReadinessCheckEnpoint() health.ApplicationHealthDetailed {
-	return app.healhChecker.RedinessCheck()
+	return healthChecker
 }

@@ -4,17 +4,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lengocson131002/go-clean/domain"
 	"github.com/lengocson131002/go-clean/pkg/logger"
+	"github.com/lengocson131002/go-clean/pkg/pipeline"
 )
 
 type AuthMiddleware struct {
-	userUseCase domain.UserUseCase
-	log         logger.Logger
+	log logger.Logger
 }
 
-func NewAuthMiddleware(userUserCase domain.UserUseCase, log logger.Logger) *AuthMiddleware {
+func NewAuthMiddleware(log logger.Logger) *AuthMiddleware {
 	return &AuthMiddleware{
-		userUseCase: userUserCase,
-		log:         log,
+		log: log,
 	}
 }
 
@@ -22,7 +21,7 @@ func (m *AuthMiddleware) Handle(ctx *fiber.Ctx) error {
 	request := &domain.VerifyUserRequest{Token: ctx.Get("Authorization", "NOT_FOUND")}
 	m.log.Debug("Authorization : %s", request.Token)
 
-	auth, err := m.userUseCase.Verify(ctx.UserContext(), request)
+	auth, err := pipeline.Send[*domain.VerifyUserRequest, *domain.VerifyUserResponse](ctx.Context(), request)
 	if err != nil {
 		m.log.Warn("Failed find user by token : %+v", err)
 		return fiber.ErrUnauthorized
@@ -33,6 +32,6 @@ func (m *AuthMiddleware) Handle(ctx *fiber.Ctx) error {
 	return ctx.Next()
 }
 
-func GetUser(ctx *fiber.Ctx) *domain.Auth {
-	return ctx.Locals("auth").(*domain.Auth)
+func GetUser(ctx *fiber.Ctx) *domain.VerifyUserResponse {
+	return ctx.Locals("auth").(*domain.VerifyUserResponse)
 }

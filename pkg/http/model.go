@@ -11,11 +11,11 @@ type DataResponse[T any] struct {
 	Data    T      `json:"data"`
 }
 
-func SuccessResponse[T any](data *T) *DataResponse[T] {
+func SuccessResponse[T any](data T) *DataResponse[T] {
 	return &DataResponse[T]{
 		Status:  common.Success.Status,
 		Code:    common.Success.Code,
 		Message: common.Success.Message,
-		Data:    *data,
+		Data:    data,
 	}
 }

@@ -63,3 +63,44 @@ func GetTracingConfig(cfg env.Configure) *TraceConfig {
 		Endpoint:    endpoint,
 	}
 }
+
+func GetYugabyteConfig(cfg env.Configure) *YugabyteConfig {
+	username := cfg.GetString("DB_YUGABYTE_USER")
+	password := cfg.GetString("DB_YUGABYTE_PASSWORD")
+	host := cfg.GetString("DB_YUGABYTE_HOST")
+	port := cfg.GetInt("DB_YUGABYTE_PORT")
+	sslmode := "disable"
+	database := cfg.GetString("DB_YUGABYTE_DBNAME")
+	idleConnection := cfg.GetInt("DB_YUGABYTE_POOL_IDLE_CONNECTION")
+	maxConnection := cfg.GetInt("DB_YUGABYTE_MAX_POOL_SIZE")
+	maxLifeTimeConnection := cfg.GetInt("DB_YUGABYTE_MAX_LIFE_TIME")
+	maxLifeIdleConnection := cfg.GetInt("DB_YUGABYTE_IDLE_TIMEOUT")
+
+	return &YugabyteConfig{
+		Username:              username,
+		Password:              password,
+		Host:                  host,
+		Port:                  port,
+		Database:              database,
+		SslMode:               sslmode,
+		IdleConnection:        idleConnection,
+		MaxConnection:         maxConnection,
+		MaxLifeTimeConnection: maxLifeTimeConnection,
+		MaxIdleTimeConnection: maxLifeIdleConnection,
+	}
+}
+
+func GetT24MqConfig(cfg env.Configure) *T24Config {
+	return &T24Config{
+		Username:   cfg.GetString("T24_USERNAME"),
+		MqHost:     cfg.GetString("T24_MQ_HOST"),
+		MqPort:     cfg.GetInt("T24_MQ_PORT"),
+		MqChannel:  cfg.GetString("T24_MQ_CHANNEL"),
+		MqManager:  cfg.GetString("T24_MQ_MANAGER"),
+		MqNameIn:   cfg.GetString("T24_MQ_NAME_IN"),
+		MqNameOut:  cfg.GetString("T24_MQ_NAME_OUT"),
+		MqTimeout:  cfg.GetInt("T24_MQ_TIMEOUT_MS"),
+		MqUsername: cfg.GetString("T24_MQ_USERNAME"),
+		MqPassword: cfg.GetString("T24_MQ_PASSWORD"),
+	}
+}

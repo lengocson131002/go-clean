@@ -5,18 +5,17 @@ import (
 	"github.com/lengocson131002/go-clean/domain"
 	"github.com/lengocson131002/go-clean/pkg/http"
 	"github.com/lengocson131002/go-clean/pkg/logger"
+	"github.com/lengocson131002/go-clean/pkg/pipeline"
 	"github.com/lengocson131002/go-clean/presentation/http/middleware"
 )
 
 type UserController struct {
-	Log     logger.Logger
-	UseCase domain.UserUseCase
+	Log logger.Logger
 }
 
-func NewUserController(useCase domain.UserUseCase, logger logger.Logger) *UserController {
+func NewUserController(logger logger.Logger) *UserController {
 	return &UserController{
-		Log:     logger,
-		UseCase: useCase,
+		Log: logger,
 	}
 }
 
@@ -29,20 +28,20 @@ func NewUserController(useCase domain.UserUseCase, logger logger.Logger) *UserCo
 // @Success 200 {object} http.DataResponse[domain.UserResponse]
 // @Router /api/v1/users/register [post]
 func (c *UserController) Register(ctx *fiber.Ctx) error {
-	request := new(domain.RegisterUserRequest)
+	request := new(domain.CreateUserRequest)
 	err := ctx.BodyParser(request)
 	if err != nil {
 		c.Log.Warn("Failed to parse request body : %+v", err)
 		return fiber.ErrBadRequest
 	}
 
-	response, err := c.UseCase.Create(ctx.UserContext(), request)
+	response, err := pipeline.Send[*domain.CreateUserRequest, *domain.CreateUserResponse](ctx.Context(), request)
 	if err != nil {
 		c.Log.Warn("Failed to register user : %+v", err)
 		return err
 	}
 
-	resp := http.SuccessResponse[domain.UserResponse](response)
+	resp := http.SuccessResponse[*domain.CreateUserResponse](response)
 	return ctx.Status(resp.Status).JSON(resp)
 }
 
@@ -62,13 +61,13 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	response, err := c.UseCase.Login(ctx.UserContext(), request)
+	response, err := pipeline.Send[*domain.LoginUserRequest, *domain.LoginUserResponse](ctx.Context(), request)
 	if err != nil {
 		c.Log.Warn("Failed to login user : %+v", err)
 		return err
 	}
 
-	resp := http.SuccessResponse[domain.UserResponse](response)
+	resp := http.SuccessResponse[*domain.LoginUserResponse](response)
 	return ctx.Status(resp.Status).JSON(resp)
 }
 
@@ -87,13 +86,13 @@ func (c *UserController) Current(ctx *fiber.Ctx) error {
 		ID: auth.ID,
 	}
 
-	response, err := c.UseCase.Current(ctx.UserContext(), request)
+	response, err := pipeline.Send[*domain.GetUserRequest, *domain.GetUserResponse](ctx.Context(), request)
 	if err != nil {
 		c.Log.Warn("Failed to get current user")
 		return err
 	}
 
-	resp := http.SuccessResponse[domain.UserResponse](response)
+	resp := http.SuccessResponse[*domain.GetUserResponse](response)
 	return ctx.Status(resp.Status).JSON(resp)
 }
 
@@ -112,13 +111,13 @@ func (c *UserController) Logout(ctx *fiber.Ctx) error {
 		ID: auth.ID,
 	}
 
-	response, err := c.UseCase.Logout(ctx.UserContext(), request)
+	response, err := pipeline.Send[*domain.LogoutUserRequest, bool](ctx.UserContext(), request)
 	if err != nil {
 		c.Log.Warn("Failed to logout user")
 		return err
 	}
 
-	resp := http.SuccessResponse[bool](&response)
+	resp := http.SuccessResponse[bool](response)
 	return ctx.Status(resp.Status).JSON(resp)
 }
 
@@ -141,12 +140,12 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 	}
 
 	request.ID = auth.ID
-	response, err := c.UseCase.Update(ctx.UserContext(), request)
+	response, err := pipeline.Send[*domain.UpdateUserRequest, *domain.UpdateUserResponse](ctx.UserContext(), request)
 	if err != nil {
 		c.Log.Warn("Failed to update user")
 		return err
 	}
 
-	resp := http.SuccessResponse[domain.UserResponse](response)
+	resp := http.SuccessResponse[*domain.UpdateUserResponse](response)
 	return ctx.Status(resp.Status).JSON(resp)
 }

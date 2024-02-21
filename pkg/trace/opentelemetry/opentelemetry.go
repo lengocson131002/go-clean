@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	instrumentationName = "github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
+	instrumentationName = "opentelemetry"
 )
 
 var (
@@ -70,7 +70,6 @@ func (ot *OpenTelemetryTracer) StartSpanFromContext(ctx context.Context, name st
 	carrier = make(propagation.MapCarrier)
 	propagator.Inject(ctx, carrier)
 	for k, v := range carrier {
-		//lint:ignore SA1019 no unicode punctution handle needed
 		md.Set(caser.String(k), v)
 	}
 	ctx = metadata.NewContext(ctx, md)

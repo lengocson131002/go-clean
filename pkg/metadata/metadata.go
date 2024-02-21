@@ -3,7 +3,6 @@ package metadata
 
 import (
 	"context"
-	"strings"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -99,7 +98,7 @@ func FromContext(ctx context.Context) (Metadata, bool) {
 	// capitalise all values
 	newMD := make(Metadata, len(md))
 	for k, v := range md {
-		newMD[strings.Title(k)] = v
+		newMD[titleCase.String(k)] = v
 	}
 
 	return newMD, ok
