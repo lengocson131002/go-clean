@@ -6,10 +6,6 @@ import (
 	health "github.com/lengocson131002/go-clean/pkg/health"
 )
 
-type healthCheckerEndpoint struct {
-	healhChecker health.HealthChecker
-}
-
 func NewHealthChecker(cfg *ServerConfig) health.HealthChecker {
 	// Init health
 	healthChecker := health.NewHealthChecker(cfg.Name, cfg.AppVersion)

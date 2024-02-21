@@ -7,11 +7,35 @@ import (
 	"time"
 
 	"github.com/lengocson131002/go-clean/domain"
+	"github.com/lengocson131002/go-clean/pkg/common"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	"github.com/lengocson131002/go-clean/pkg/pipeline"
 	ot "github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
 	"github.com/lengocson131002/go-clean/pkg/util"
 )
+
+// ERROR HANDLING FOR RECOVERING FROM PANIC
+type ErrorHandlingBehavior struct {
+	logger logger.Logger
+}
+
+func NewErrorHandlingBehavior(logger logger.Logger) *ErrorHandlingBehavior {
+	return &ErrorHandlingBehavior{
+		logger: logger,
+	}
+}
+
+func (b *ErrorHandlingBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (res interface{}, err error) {
+	// TODO: recover from error panic to prevent stop application
+	defer func() {
+		if r := recover(); r != nil {
+			b.logger.Error("Recovered from panic: %v", r)
+			err = common.ErrInternalServer
+		}
+	}()
+	response, err := next(ctx)
+	return response, err
+}
 
 // TRACING
 type RequestTracingBehavior struct {
@@ -28,7 +52,7 @@ func NewTracingBehavior(logger logger.Logger, tracer *ot.OpenTelemetryTracer) *R
 
 func (b *RequestTracingBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (interface{}, error) {
 	reqType := util.GetType(request)
-	opName := fmt.Sprintf("Request Pipeline - %s", reqType)
+	opName := fmt.Sprintf("request pipeline - %s", reqType)
 	traceCtx, span := b.tracer.StartSpanFromContext(ctx, opName)
 	defer span.End()
 
@@ -49,18 +73,18 @@ func NewMetricBehavior(logger logger.Logger, metricer *Metricer) *RequestMetricB
 	}
 }
 
-func (b *RequestMetricBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (interface{}, error) {
-	response, err := next(ctx)
+func (b *RequestMetricBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (response interface{}, err error) {
+	defer func() {
+		reqType := util.GetType(request)
+		reqTypeCounter := b.metricer.requestCountMetrics.With(METRIC_LABEL_REQUEST_TYPE, reqType)
+		if err == nil {
+			reqTypeCounter.With(METRIC_LABEL_REQUEST_STATUS, METRIC_LABEL_VALUE_REQUEST_STATUS_SUCCESS).Add(1)
+		} else {
+			reqTypeCounter.With(METRIC_LABEL_REQUEST_STATUS, METRIC_LABEL_VALUE_REQUEST_STATUS_ERROR).Add(1)
+		}
+	}()
 
-	reqType := util.GetType(request)
-
-	reqTypeCounter := b.metricer.requestCountMetrics.With(METRIC_LABEL_REQUEST_TYPE, reqType)
-	if err == nil {
-		reqTypeCounter.With(METRIC_LABEL_REQUEST_STATUS, METRIC_LABEL_VALUE_REQUEST_STATUS_SUCCESS).Add(1)
-	} else {
-		reqTypeCounter.With(METRIC_LABEL_REQUEST_STATUS, METRIC_LABEL_VALUE_REQUEST_STATUS_ERROR).Add(1)
-	}
-
+	response, err = next(ctx)
 	return response, err
 }
 
@@ -75,18 +99,22 @@ func NewRequestLoggingBehavior(logger logger.Logger) *RequestLoggingBehavior {
 	}
 }
 
-func (b *RequestLoggingBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (interface{}, error) {
+func (b *RequestLoggingBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (response interface{}, err error) {
 	start := time.Now()
-	response, err := next(ctx)
 
-	requestJson, _ := json.Marshal(request)
-	responseJson, _ := json.Marshal(response)
+	defer func() {
+		requestJson, _ := json.Marshal(request)
+		responseJson, _ := json.Marshal(response)
+		errJson, _ := json.Marshal(err)
 
-	b.logger.Info(fmt.Sprintf("Request: %#v, Response: %#v. Error: %#v, Duration: %dms",
-		string(requestJson),
-		string(responseJson),
-		err,
-		time.Since(start).Milliseconds()))
+		b.logger.Info("Request: %s, Response: %s. Error: %s, Duration: %dms",
+			string(requestJson),
+			string(responseJson),
+			string(errJson),
+			time.Since(start).Milliseconds())
+	}()
+
+	response, err = next(ctx)
 
 	return response, err
 }
@@ -105,6 +133,7 @@ func RegisterPipeline(
 	requestLoggingBehavior *RequestLoggingBehavior,
 	requestTracingBehavior *RequestTracingBehavior,
 	requestMetricBehavior *RequestMetricBehavior,
+	errorHandlingBehavior *ErrorHandlingBehavior,
 
 ) {
 	// Register request handlers
@@ -117,6 +146,6 @@ func RegisterPipeline(
 	pipeline.RegisterRequestHandler[*domain.OpenAccountRequest, *domain.OpenAccountResponse](openAccountHandler)
 
 	// Register request behaviors
-	pipeline.RegisterRequestPipelineBehaviors(requestLoggingBehavior, requestTracingBehavior, requestMetricBehavior)
+	pipeline.RegisterRequestPipelineBehaviors(requestTracingBehavior, requestLoggingBehavior, requestMetricBehavior, errorHandlingBehavior)
 
 }

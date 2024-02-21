@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/ahmetb/go-linq/v3"
 )
 
 // RequestHandlerFunc is a continuation for the next task to execute in the pipeline
@@ -175,19 +177,19 @@ func Send[TRequest any, TResponse any](ctx context.Context, request TRequest) (T
 			return handlerValue.Handle(ctx, request)
 		}
 
-		for i := len(reversPipes) - 1; i >= 0; i-- {
-			pipe := reversPipes[i]
+		aggregateResult := linq.From(reversPipes).AggregateWithSeedT(lastHandler, func(next RequestHandlerFunc, pipe PipelineBehavior) RequestHandlerFunc {
 			pipeValue := pipe
-			nexValue := lastHandler
+			nexValue := next
 
 			var handlerFunc RequestHandlerFunc = func(ctx context.Context) (interface{}, error) {
-				return pipeValue.(PipelineBehavior).Handle(ctx, request, nexValue)
+				return pipeValue.Handle(ctx, request, nexValue)
 			}
 
-			lastHandler = handlerFunc
-		}
+			return handlerFunc
+		})
 
-		response, err := lastHandler(ctx)
+		v := aggregateResult.(RequestHandlerFunc)
+		response, err := v(ctx)
 
 		if err != nil {
 			return *new(TResponse), fmt.Errorf("error handling request: %w", err)

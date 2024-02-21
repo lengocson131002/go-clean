@@ -43,6 +43,8 @@ var Module = fx.Module("main",
 	fx.Provide(bootstrap.NewRequestLoggingBehavior),
 	fx.Provide(bootstrap.NewTracingBehavior),
 	fx.Provide(bootstrap.NewMetricBehavior),
+	fx.Provide(bootstrap.NewErrorHandlingBehavior),
+
 	fx.Provide(http.NewHttpServer),
 	fx.Provide(bootstrap.GetYugabyteConfig),
 	fx.Provide(bootstrap.GetMasterDataDatabase),

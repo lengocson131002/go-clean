@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+// Domain Model
+
+// Events
+
 // OPen t24 account
 type OpenAccountRequest struct {
 	CIF             int    `json:"CIF"`

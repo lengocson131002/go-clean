@@ -11,8 +11,10 @@ import (
 	"github.com/lengocson131002/go-clean/bootstrap"
 	"github.com/lengocson131002/go-clean/infras/data"
 	"github.com/lengocson131002/go-clean/pkg/t24/response/parser/txn"
+	"github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
 	"github.com/lengocson131002/go-clean/pkg/xslt"
 	"github.com/lengocson131002/go-clean/usecase/outbound"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -23,13 +25,15 @@ type t24MqClient struct {
 	t24Cfg *bootstrap.T24Config
 	mRepo  data.MasterDataRepository
 	xslt   xslt.Xslt
+	tracer *opentelemetry.OpenTelemetryTracer
 }
 
-func NewT24MqClient(t24Config *bootstrap.T24Config, mRepo data.MasterDataRepository, xslt xslt.Xslt) outbound.T24MQClient {
+func NewT24MqClient(t24Config *bootstrap.T24Config, xslt xslt.Xslt, tracer *opentelemetry.OpenTelemetryTracer) outbound.T24MQClient {
 	return &t24MqClient{
 		t24Cfg: t24Config,
-		mRepo:  mRepo,
+		// mRepo:  mRepo,
 		xslt:   xslt,
+		tracer: tracer,
 	}
 }
 
@@ -41,6 +45,9 @@ type templateEntity struct {
 
 // ExceuteOpenAccount implements outbound.T24MQClient.
 func (c *t24MqClient) ExceuteOpenAccount(ctx context.Context, request *outbound.T24MQOpenAccountRequest) (*outbound.T24MQOpenAccountResponse, error) {
+	ctx, span := c.tracer.StartSpanFromContext(ctx, "send request to T24MQ to open account", trace.WithSpanKind(trace.SpanKindClient))
+	defer span.End()
+
 	// Step 1: Get template from T24
 	temReq, err := c.mRepo.GetTemplateRequest(ctx, OPEN_CURRENT_ACCOUNT)
 	if err != nil {
