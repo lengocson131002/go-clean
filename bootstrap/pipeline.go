@@ -9,9 +9,11 @@ import (
 	"github.com/lengocson131002/go-clean/domain"
 	"github.com/lengocson131002/go-clean/pkg/common"
 	"github.com/lengocson131002/go-clean/pkg/logger"
+	"github.com/lengocson131002/go-clean/pkg/metrics/prometheous"
 	"github.com/lengocson131002/go-clean/pkg/pipeline"
 	ot "github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
 	"github.com/lengocson131002/go-clean/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // ERROR HANDLING FOR RECOVERING FROM PANIC
@@ -63,24 +65,29 @@ func (b *RequestTracingBehavior) Handle(ctx context.Context, request interface{}
 // METRICS
 type RequestMetricBehavior struct {
 	logger   logger.Logger
-	metricer *Metricer
+	metricer *prometheous.PrometheousMetricer
+	cfg      *ServerConfig
 }
 
-func NewMetricBehavior(logger logger.Logger, metricer *Metricer) *RequestMetricBehavior {
+func NewMetricBehavior(logger logger.Logger, metricer *prometheous.PrometheousMetricer, cfg *ServerConfig) *RequestMetricBehavior {
 	return &RequestMetricBehavior{
 		logger:   logger,
 		metricer: metricer,
+		cfg:      cfg,
 	}
 }
 
 func (b *RequestMetricBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (response interface{}, err error) {
 	defer func() {
 		reqType := util.GetType(request)
-		reqTypeCounter := b.metricer.requestCountMetrics.With(METRIC_LABEL_REQUEST_TYPE, reqType)
 		if err == nil {
-			reqTypeCounter.With(METRIC_LABEL_REQUEST_STATUS, METRIC_LABEL_VALUE_REQUEST_STATUS_SUCCESS).Add(1)
+			b.metricer.RequestTotalCounter.With(prometheus.Labels{
+				"msc_service":  b.cfg.Name,
+				"msc_endpoint": reqType,
+				"msc_status":   "success",
+			}).Inc()
 		} else {
-			reqTypeCounter.With(METRIC_LABEL_REQUEST_STATUS, METRIC_LABEL_VALUE_REQUEST_STATUS_ERROR).Add(1)
+			b.metricer.RequestTotalCounter.WithLabelValues(b.cfg.Name, reqType, "failure").Inc()
 		}
 	}()
 

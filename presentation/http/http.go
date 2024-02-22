@@ -94,7 +94,7 @@ func (s *HttpServer) Start(ctx context.Context) error {
 	})
 
 	// metrics endpoint
-	prometheus := fiberprometheus.New("my-service-name")
+	prometheus := fiberprometheus.New(s.cfg.Name)
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 
