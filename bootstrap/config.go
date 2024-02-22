@@ -38,7 +38,8 @@ func GetDatabaseConfig(cfg env.Configure) *PostgresConfig {
 func GetServerConfig(cfg env.Configure) *ServerConfig {
 	name := cfg.GetString("APP_NAME")
 	version := cfg.GetString("APP_VERSION")
-	port := cfg.GetInt("APP_PORT")
+	httpPort := cfg.GetInt("APP_HTTP_PORT")
+	grpcPort := cfg.GetInt("APP_GRPC_PORT")
 	baseUrl := cfg.GetString("APP_BASE_URL")
 	grRunningThreshold := cfg.GetInt("APP_GR_RUNNING_THRESHOLD")
 	gcMaxPauseThresholdms := cfg.GetInt("APP_GC_PAUSE_THRESHOLD_MS")
@@ -46,7 +47,8 @@ func GetServerConfig(cfg env.Configure) *ServerConfig {
 	return &ServerConfig{
 		Name:               name,
 		AppVersion:         version,
-		Port:               port,
+		HttpPort:           httpPort,
+		GrpcPort:           grpcPort,
 		BaseURI:            baseUrl,
 		GrRunningThreshold: grRunningThreshold,
 		GcPauseThresholdMs: gcMaxPauseThresholdms,

@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/lengocson131002/go-clean/bootstrap"
 	"github.com/lengocson131002/go-clean/infras/data"
 	"github.com/lengocson131002/go-clean/infras/outbound"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	"github.com/lengocson131002/go-clean/pkg/xslt"
+	gprc "github.com/lengocson131002/go-clean/presentation/grpc"
 	"github.com/lengocson131002/go-clean/presentation/http"
 	"github.com/lengocson131002/go-clean/presentation/http/controller"
 	"github.com/lengocson131002/go-clean/presentation/http/middleware"
@@ -46,6 +46,7 @@ var Module = fx.Module("main",
 	fx.Provide(bootstrap.NewErrorHandlingBehavior),
 
 	fx.Provide(http.NewHttpServer),
+	fx.Provide(gprc.NewGrpcServer),
 	fx.Provide(bootstrap.GetYugabyteConfig),
 	fx.Provide(bootstrap.GetMasterDataDatabase),
 	fx.Provide(data.NewMasterDataRepository),
@@ -65,25 +66,46 @@ func main() {
 	).Run()
 }
 
-func run(lc fx.Lifecycle, app *fiber.App, log logger.Logger, conf *bootstrap.ServerConfig, shutdowner fx.Shutdowner) {
+func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, log logger.Logger, conf *bootstrap.ServerConfig, shutdowner fx.Shutdowner) {
+	gCtx, cancel := context.WithCancel(context.Background())
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			errChan := make(chan error)
+
+			// start HTTP server
 			go func() {
-				if err := app.Listen(fmt.Sprintf(":%v", conf.Port)); err != nil {
-					log.Error("server terminated unexpectedly")
+				if err := http.Start(gCtx); err != nil {
+					log.Fatal("Failed to start HTTP server: %s", err)
+					errChan <- err
+					cancel()
 					shutdowner.Shutdown()
 				}
 			}()
-			return nil
+
+			// start GRPC server
+			go func() {
+				if err := grpc.Start(gCtx); err != nil {
+					log.Fatal("Failed to start GRPC server: %s", err)
+					errChan <- err
+					cancel()
+					shutdowner.Shutdown()
+				}
+			}()
+
+			select {
+			case err := <-errChan:
+				return err
+			case <-time.After(100 * time.Millisecond):
+				return nil
+			}
+
 		},
 		OnStop: func(ctx context.Context) error {
-			log.Info("gracefully shutting down server")
-			if err := app.Shutdown(); err != nil {
-				log.Error("error occurred while gracefully shutting down server")
-				return err
+			cancel()
+			select {
+			case <-time.After(100 * time.Millisecond):
+				return nil
 			}
-			log.Info("graceful server shut down completed")
-			return nil
 		},
 	})
 }

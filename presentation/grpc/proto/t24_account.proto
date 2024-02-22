@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "github.com/lengocson131002/go-clean/grpc";
+
+service T24AccountService {
+    rpc OpenT24Account(OpenT24AccountRequest) returns (OpenT24AccountResponse);
+}
+
+message OpenT24AccountRequest {
+    int32 CIF = 1;
+    string accountTitle = 2;
+    string shortName = 3;
+    string category = 4;
+    string rmCode = 5;
+    string branchCode = 6;
+    string postingRestrict = 7;
+    string program = 8;
+    string currency = 9;
+
+}
+
+message OpenT24AccountResponse {
+    int32 CIF = 1;
+    string status = 2;
+}
+
+// protoc --go_out=presentation/grpc/pb --go_opt=paths=source_relative --go-grpc_out=presentation/grpc/pb --go-grpc_opt=paths=source_relative -I presentation/grpc/proto/ presentation/grpc/proto/*

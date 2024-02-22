@@ -39,7 +39,7 @@ func GetDatabaseConnector() database.DatabaseConnector {
 	return database.NewSqlxDatabaseConnector()
 }
 
-func GetUserDatabase(p *PostgresConfig, conn database.DatabaseConnector) (*data.UserDatabase, error) {
+func GetUserDatabase(p *PostgresConfig, conn database.DatabaseConnector) *data.UserDatabase {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", p.Host, p.Port, p.Username, p.Password, p.Database, p.SslMode)
 
 	db, err := conn.Connect("postgres", dsn, &database.PoolOptions{
@@ -50,12 +50,12 @@ func GetUserDatabase(p *PostgresConfig, conn database.DatabaseConnector) (*data.
 	})
 
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	return &data.UserDatabase{
 		DB: db,
-	}, err
+	}
 }
 
 func GetMasterDataDatabase(y *YugabyteConfig, conn database.DatabaseConnector) *data.MasterDataDatabase {

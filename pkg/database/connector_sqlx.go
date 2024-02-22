@@ -7,7 +7,7 @@ import (
 type SqlxDatabaseConnector struct {
 }
 
-func NewSqlxDatabaseConnector() *SqlxDatabaseConnector {
+func NewSqlxDatabaseConnector() DatabaseConnector {
 	return &SqlxDatabaseConnector{}
 }
 
