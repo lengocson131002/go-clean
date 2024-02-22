@@ -28,10 +28,15 @@ type t24MqClient struct {
 	tracer *opentelemetry.OpenTelemetryTracer
 }
 
-func NewT24MqClient(t24Config *bootstrap.T24Config, xslt xslt.Xslt, tracer *opentelemetry.OpenTelemetryTracer) outbound.T24MQClient {
+func NewT24MqClient(
+	t24Config *bootstrap.T24Config,
+	xslt xslt.Xslt,
+	tracer *opentelemetry.OpenTelemetryTracer,
+	mRepo data.MasterDataRepository,
+) outbound.T24MQClient {
 	return &t24MqClient{
 		t24Cfg: t24Config,
-		// mRepo:  mRepo,
+		mRepo:  mRepo,
 		xslt:   xslt,
 		tracer: tracer,
 	}

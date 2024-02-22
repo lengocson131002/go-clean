@@ -100,14 +100,20 @@ func NewRequestLoggingBehavior(logger logger.Logger) *RequestLoggingBehavior {
 }
 
 func (b *RequestLoggingBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (response interface{}, err error) {
+	isSuccess := true
 	start := time.Now()
 
 	defer func() {
+		if err != nil {
+			isSuccess = false
+		}
+
 		requestJson, _ := json.Marshal(request)
 		responseJson, _ := json.Marshal(response)
 		errJson, _ := json.Marshal(err)
 
-		b.logger.Info("Request: %s, Response: %s. Error: %s, Duration: %dms",
+		b.logger.Info("Success: %t, Request: %s, Response: %s. Error: %s, Duration: %dms",
+			isSuccess,
 			string(requestJson),
 			string(responseJson),
 			string(errJson),
