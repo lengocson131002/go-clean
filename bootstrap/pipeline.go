@@ -13,7 +13,6 @@ import (
 	"github.com/lengocson131002/go-clean/pkg/pipeline"
 	ot "github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
 	"github.com/lengocson131002/go-clean/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // ERROR HANDLING FOR RECOVERING FROM PANIC
@@ -81,11 +80,7 @@ func (b *RequestMetricBehavior) Handle(ctx context.Context, request interface{},
 	defer func() {
 		reqType := util.GetType(request)
 		if err == nil {
-			b.metricer.RequestTotalCounter.With(prometheus.Labels{
-				"msc_service":  b.cfg.Name,
-				"msc_endpoint": reqType,
-				"msc_status":   "success",
-			}).Inc()
+			b.metricer.RequestTotalCounter.WithLabelValues(b.cfg.Name, reqType, "success").Inc()
 		} else {
 			b.metricer.RequestTotalCounter.WithLabelValues(b.cfg.Name, reqType, "failure").Inc()
 		}
