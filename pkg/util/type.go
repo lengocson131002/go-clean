@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	POINTER_PREFIX = "*"
+	POINTER_PREFIX = ""
 )
 
 func GetType(obj interface{}) string {

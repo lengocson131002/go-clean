@@ -11,10 +11,9 @@ import (
 	"github.com/lengocson131002/go-clean/bootstrap"
 	"github.com/lengocson131002/go-clean/infras/data"
 	"github.com/lengocson131002/go-clean/pkg/t24/response/parser/txn"
-	"github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
+	"github.com/lengocson131002/go-clean/pkg/trace"
 	"github.com/lengocson131002/go-clean/pkg/xslt"
 	"github.com/lengocson131002/go-clean/usecase/outbound"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -25,14 +24,14 @@ type t24MqClient struct {
 	t24Cfg *bootstrap.T24Config
 	mRepo  data.MasterDataRepository
 	xslt   xslt.Xslt
-	tracer *opentelemetry.OpenTelemetryTracer
+	tracer trace.Tracer
 }
 
 func NewT24MqClient(
 	t24Config *bootstrap.T24Config,
 	xslt xslt.Xslt,
-	tracer *opentelemetry.OpenTelemetryTracer,
 	mRepo data.MasterDataRepository,
+	tracer trace.Tracer,
 ) outbound.T24MQClient {
 	return &t24MqClient{
 		t24Cfg: t24Config,
@@ -50,8 +49,10 @@ type templateEntity struct {
 
 // ExceuteOpenAccount implements outbound.T24MQClient.
 func (c *t24MqClient) ExceuteOpenAccount(ctx context.Context, request *outbound.T24MQOpenAccountRequest) (*outbound.T24MQOpenAccountResponse, error) {
-	ctx, span := c.tracer.StartSpanFromContext(ctx, "send request to T24MQ to open account", trace.WithSpanKind(trace.SpanKindClient))
-	defer span.End()
+	var result = new(outbound.T24MQOpenAccountResponse)
+
+	ctx, finish := c.tracer.StartExternalTrace(ctx, "call t24 to open account")
+	defer finish(ctx, trace.WithExternalResponse(result))
 
 	// Step 1: Get template from T24
 	temReq, err := c.mRepo.GetTemplateRequest(ctx, OPEN_CURRENT_ACCOUNT)
@@ -125,10 +126,10 @@ func (c *t24MqClient) ExceuteOpenAccount(ctx context.Context, request *outbound.
 			return nil, fmt.Errorf("No response record from T24")
 		}
 
-		return &outbound.T24MQOpenAccountResponse{
-			CIF:    request.CIF,
-			Status: res.ResponseCommon.Status,
-		}, nil
+		result.CIF = request.CIF
+		result.Status = res.ResponseCommon.Status
+
+		return result, nil
 
 	default:
 		return nil, fmt.Errorf("Error receive reply message: Not text message")

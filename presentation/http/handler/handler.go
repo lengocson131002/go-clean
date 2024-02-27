@@ -4,15 +4,16 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/lengocson131002/go-clean/pkg/common"
+	dErrors "github.com/lengocson131002/go-clean/pkg/errors"
 	"github.com/lengocson131002/go-clean/pkg/http"
 )
 
 func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
+	// default message
 	msg := http.DefaultErrorResponse
 	msg.Message = err.Error()
 
-	// trieve the custom status code if it's an fiber.*Error
+	// retrieve the custom status code if it's an fiber.*Error
 	var e *fiber.Error
 	if errors.As(err, &e) {
 		msg = http.DataResponse[interface{}]{
@@ -21,12 +22,13 @@ func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 			Message: e.Message,
 		}
 	}
-	var customErr *common.InternalResponse
-	if errors.As(err, &customErr) {
+
+	var businessErr *dErrors.DomainError
+	if errors.As(err, &businessErr) {
 		msg = http.DataResponse[interface{}]{
-			Status:  customErr.Status,
-			Code:    customErr.Code,
-			Message: customErr.Message,
+			Status:  businessErr.Status,
+			Code:    businessErr.Code,
+			Message: businessErr.Message,
 		}
 	}
 

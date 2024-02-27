@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ansrivas/fiberprometheus/v2"
+	"github.com/gofiber/contrib/otelfiber/v2"
 	"github.com/gofiber/fiber/v2"
 	fiberLog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/swagger"
@@ -68,7 +69,7 @@ func (s *HttpServer) Start(ctx context.Context) error {
 		Next:         nil,
 		Done:         nil,
 		Format:       "[${time}] ${status} - ${latency} ${method} ${path}\n",
-		TimeFormat:   "15:04:05",
+		TimeFormat:   "2006-01-02 15:04:05",
 		TimeZone:     "Local",
 		TimeInterval: 500 * time.Millisecond,
 		Output:       os.Stdout,
@@ -93,6 +94,9 @@ func (s *HttpServer) Start(ctx context.Context) error {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(result)
 	})
 
+	// tracing
+	app.Use(otelfiber.Middleware())
+
 	// metrics endpoint
 	prometheus := fiberprometheus.New(s.cfg.Name)
 	prometheus.RegisterAt(app, "/metrics")
@@ -106,20 +110,20 @@ func (s *HttpServer) Start(ctx context.Context) error {
 	route.RegisterT24Route(&v1, s.t24AccConntroller)
 
 	go func() {
-		defer func() {
+		defer func(ctx context.Context) {
 			if err := app.Shutdown(); err != nil {
-				s.logger.Error("Failed to shutdown http server: %v", err)
+				s.logger.Errorf(ctx, "Failed to shutdown http server: %v", err)
 			}
-			s.logger.Info("Stop HTTP Server")
-		}()
+			s.logger.Info(ctx, "Stop HTTP Server")
+		}(ctx)
 
 		<-ctx.Done()
 	}()
 
 	hPort := s.cfg.HttpPort
-	s.logger.Info("Start HTTP server at port: %v", hPort)
+	s.logger.Infof(ctx, "Start HTTP server at port: %v", hPort)
 	if err := app.Listen(fmt.Sprintf(":%v", hPort)); err != nil {
-		s.logger.Error("Failed to start http server: %v ", err)
+		s.logger.Errorf(ctx, "Failed to start http server: %v ", err)
 		return err
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/lengocson131002/go-clean/domain"
-	"github.com/lengocson131002/go-clean/pkg/common"
+	"github.com/lengocson131002/go-clean/pkg/errors"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	mapper "github.com/lengocson131002/go-clean/pkg/util"
 	"github.com/lengocson131002/go-clean/pkg/validation"
@@ -30,14 +30,14 @@ func NewUpdateUserHandler(
 }
 func (c *updateUserHandler) Handle(ctx context.Context, request *domain.UpdateUserRequest) (*domain.UpdateUserResponse, error) {
 	if err := c.Validator.Validate(request); err != nil {
-		c.Log.Warn("Invalid request body : %+v", err)
-		return nil, common.ErrBadRequest
+		c.Log.Warnf(ctx, "Invalid request body : %+v", err)
+		return nil, errors.DomainValidationError
 	}
 
 	user, err := c.UserRepository.FindUserById(ctx, request.ID)
 	if err != nil {
-		c.Log.Warn("Failed find user by id : %+v", err)
-		return nil, common.ErrNotFound
+		c.Log.Warnf(ctx, "Failed find user by id : %+v", err)
+		return nil, errors.DomainValidationError
 	}
 
 	if request.Name != "" {
@@ -47,15 +47,15 @@ func (c *updateUserHandler) Handle(ctx context.Context, request *domain.UpdateUs
 	if request.Password != "" {
 		password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 		if err != nil {
-			c.Log.Warn("Failed to generate bcrype hash : %+v", err)
-			return nil, common.ErrInternalServer
+			c.Log.Warnf(ctx, "Failed to generate bcrype hash : %+v", err)
+			return nil, domain.ErrorAccountNotFound
 		}
 		user.Password = string(password)
 	}
 
 	if err := c.UserRepository.UpdateUser(ctx, user); err != nil {
-		c.Log.Warn("Failed save user : %+v", err)
-		return nil, common.ErrInternalServer
+		c.Log.Warnf(ctx, "Failed save user : %+v", err)
+		return nil, errors.InternalServerError
 	}
 
 	res := &domain.UpdateUserResponse{}

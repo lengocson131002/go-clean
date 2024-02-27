@@ -5,8 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lengocson131002/go-clean/pkg/database"
-	ot "github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
-	"go.opentelemetry.io/otel/trace"
+	"github.com/lengocson131002/go-clean/pkg/trace"
 )
 
 // Interface for metarepository
@@ -26,10 +25,10 @@ type MasterDataDatabase struct {
 
 type masterDataRepository struct {
 	db     *database.Gdbc
-	tracer *ot.OpenTelemetryTracer
+	tracer trace.Tracer
 }
 
-func NewMasterDataRepository(db *MasterDataDatabase, tracer *ot.OpenTelemetryTracer) MasterDataRepository {
+func NewMasterDataRepository(db *MasterDataDatabase, tracer trace.Tracer) MasterDataRepository {
 	return &masterDataRepository{
 		db:     db.DB,
 		tracer: tracer,
@@ -37,10 +36,16 @@ func NewMasterDataRepository(db *MasterDataDatabase, tracer *ot.OpenTelemetryTra
 }
 
 func (repo *masterDataRepository) GetTemplateRequest(ctx context.Context, templateName string) (string, error) {
-	ctx, span := repo.tracer.StartSpanFromContext(ctx, "Get T24 template from master data database", trace.WithSpanKind(trace.SpanKindClient))
-	defer span.End()
-
 	sql := "SELECT TEMPLATE_NAME, TEMPLATE_REQUEST, TEMPLATE_RESPONSE FROM GW_XSLTEMPLATES WHERE TEMPLATE_NAME = $1"
+
+	ctx, finish := repo.tracer.StartDatabaseTrace(
+		ctx,
+		"get template request from master database",
+		trace.WithDBTableName("GW_XSLTEMPLATES"),
+		trace.WithDBSql(sql),
+	)
+
+	defer finish(ctx)
 
 	row := repo.db.QueryRow(ctx, sql, templateName)
 	if row == nil {

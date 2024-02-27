@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/lengocson131002/go-clean/domain"
-	"github.com/lengocson131002/go-clean/pkg/common"
+	"github.com/lengocson131002/go-clean/pkg/errors"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	"github.com/lengocson131002/go-clean/pkg/validation"
 	"github.com/lengocson131002/go-clean/usecase/data"
@@ -27,14 +27,14 @@ func NewVerifyUserHandler(log logger.Logger, validator validation.Validator, use
 func (c *verifyUserHandler) Handle(ctx context.Context, request *domain.VerifyUserRequest) (*domain.VerifyUserResponse, error) {
 	err := c.Validator.Validate(request)
 	if err != nil {
-		c.Log.Warn("Invalid request body : %+v", err)
-		return nil, common.ErrBadRequest
+		c.Log.Warnf(ctx, "Invalid request body : %+v", err)
+		return nil, errors.DomainValidationError
 	}
 
 	user, err := c.UserRepository.FindByToken(ctx, request.Token)
 	if err != nil {
-		c.Log.Warn("Failed find user by token : %+v", err)
-		return nil, common.ErrBadRequest
+		c.Log.Warnf(ctx, "Failed find user by token : %+v", err)
+		return nil, domain.ErrorAccountNotFound
 	}
 
 	return &domain.VerifyUserResponse{ID: user.ID}, nil

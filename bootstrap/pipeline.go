@@ -3,16 +3,18 @@ package bootstrap
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/lengocson131002/go-clean/domain"
-	"github.com/lengocson131002/go-clean/pkg/common"
+	domainErrors "github.com/lengocson131002/go-clean/pkg/errors"
 	"github.com/lengocson131002/go-clean/pkg/logger"
-	"github.com/lengocson131002/go-clean/pkg/metrics/prometheous"
+	"github.com/lengocson131002/go-clean/pkg/metrics/prome"
 	"github.com/lengocson131002/go-clean/pkg/pipeline"
-	ot "github.com/lengocson131002/go-clean/pkg/trace/opentelemetry"
+	"github.com/lengocson131002/go-clean/pkg/trace"
 	"github.com/lengocson131002/go-clean/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // ERROR HANDLING FOR RECOVERING FROM PANIC
@@ -30,8 +32,8 @@ func (b *ErrorHandlingBehavior) Handle(ctx context.Context, request interface{},
 	// TODO: recover from error panic to prevent stop application
 	defer func() {
 		if r := recover(); r != nil {
-			b.logger.Error("Recovered from panic: %v", r)
-			err = common.ErrInternalServer
+			b.logger.Errorf(ctx, "Recovered from panic: %v", r)
+			err = fmt.Errorf("Internal server error")
 		}
 	}()
 	response, err := next(ctx)
@@ -41,10 +43,10 @@ func (b *ErrorHandlingBehavior) Handle(ctx context.Context, request interface{},
 // TRACING
 type RequestTracingBehavior struct {
 	logger logger.Logger
-	tracer *ot.OpenTelemetryTracer
+	tracer trace.Tracer
 }
 
-func NewTracingBehavior(logger logger.Logger, tracer *ot.OpenTelemetryTracer) *RequestTracingBehavior {
+func NewTracingBehavior(logger logger.Logger, tracer trace.Tracer) *RequestTracingBehavior {
 	return &RequestTracingBehavior{
 		logger: logger,
 		tracer: tracer,
@@ -54,21 +56,25 @@ func NewTracingBehavior(logger logger.Logger, tracer *ot.OpenTelemetryTracer) *R
 func (b *RequestTracingBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (interface{}, error) {
 	reqType := util.GetType(request)
 	opName := fmt.Sprintf("request pipeline - %s", reqType)
-	traceCtx, span := b.tracer.StartSpanFromContext(ctx, opName)
-	defer span.End()
 
-	response, err := next(traceCtx)
-	return response, err
+	// tracing request
+	var res interface{}
+	ctx, finish := b.tracer.StartInternalTrace(ctx, opName, trace.WithInternalRequest(request))
+	defer finish(ctx, trace.WithInternalResponse(res))
+
+	res, err := next(ctx)
+
+	return res, err
 }
 
 // METRICS
 type RequestMetricBehavior struct {
 	logger   logger.Logger
-	metricer *prometheous.PrometheousMetricer
+	metricer *prome.PrometheusMetricer
 	cfg      *ServerConfig
 }
 
-func NewMetricBehavior(logger logger.Logger, metricer *prometheous.PrometheousMetricer, cfg *ServerConfig) *RequestMetricBehavior {
+func NewMetricBehavior(logger logger.Logger, metricer *prome.PrometheusMetricer, cfg *ServerConfig) *RequestMetricBehavior {
 	return &RequestMetricBehavior{
 		logger:   logger,
 		metricer: metricer,
@@ -77,13 +83,25 @@ func NewMetricBehavior(logger logger.Logger, metricer *prometheous.PrometheousMe
 }
 
 func (b *RequestMetricBehavior) Handle(ctx context.Context, request interface{}, next pipeline.RequestHandlerFunc) (response interface{}, err error) {
+	reqType := util.GetType(request)
+
+	timer := prometheus.NewTimer(prometheus.ObserverFunc(func(v float64) {
+		us := v * 1000000 // make microseconds
+		b.metricer.RequestSummary.WithLabelValues(b.cfg.Name, reqType).Observe(us)
+		b.metricer.RequestHistogram.WithLabelValues(b.cfg.Name, reqType).Observe(v)
+	}))
+
 	defer func() {
-		reqType := util.GetType(request)
-		if err == nil {
+		var businessErr *domainErrors.DomainError
+		// mark a request success as if there is no error happened or the error is business error
+		if err == nil || errors.As(err, &businessErr) {
 			b.metricer.RequestTotalCounter.WithLabelValues(b.cfg.Name, reqType, "success").Inc()
 		} else {
 			b.metricer.RequestTotalCounter.WithLabelValues(b.cfg.Name, reqType, "failure").Inc()
 		}
+
+		// stop timer
+		timer.ObserveDuration()
 	}()
 
 	response, err = next(ctx)
@@ -114,7 +132,7 @@ func (b *RequestLoggingBehavior) Handle(ctx context.Context, request interface{}
 		responseJson, _ := json.Marshal(response)
 		errJson, _ := json.Marshal(err)
 
-		b.logger.Info("Success: %t, Request: %s, Response: %s. Error: %s, Duration: %dms",
+		b.logger.Infof(ctx, "[Request Pipeline] Success: %t - Request: %s - Response: %s - Error: %s - Duration: %dms",
 			isSuccess,
 			string(requestJson),
 			string(responseJson),

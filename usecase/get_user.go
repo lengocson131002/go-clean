@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/lengocson131002/go-clean/domain"
-	"github.com/lengocson131002/go-clean/pkg/common"
+	"github.com/lengocson131002/go-clean/pkg/errors"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	mapper "github.com/lengocson131002/go-clean/pkg/util"
 	"github.com/lengocson131002/go-clean/pkg/validation"
@@ -30,14 +30,14 @@ func NewGetUserHandler(
 
 func (c *getUserHandler) Handle(ctx context.Context, request *domain.GetUserRequest) (*domain.GetUserResponse, error) {
 	if err := c.Validator.Validate(request); err != nil {
-		c.Log.Warn("Invalid request body : %+v", err)
-		return nil, common.ErrBadRequest
+		c.Log.Warn(ctx, "Invalid request body : %+v", err)
+		return nil, errors.DomainValidationError
 	}
 
 	user, err := c.UserRepository.FindUserById(ctx, request.ID)
 	if err != nil {
-		c.Log.Warn("Failed find user by id : %+v", err)
-		return nil, common.ErrNotFound
+		c.Log.Warnf(ctx, "Failed find user by id : %+v", err)
+		return nil, domain.ErrorAccountNotFound
 	}
 
 	res := &domain.GetUserResponse{}

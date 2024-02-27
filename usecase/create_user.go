@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/lengocson131002/go-clean/domain"
-	"github.com/lengocson131002/go-clean/pkg/common"
+	"github.com/lengocson131002/go-clean/pkg/errors"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	mapper "github.com/lengocson131002/go-clean/pkg/util"
 	"github.com/lengocson131002/go-clean/pkg/validation"
@@ -32,25 +32,25 @@ func (c *createUserHandler) Handle(ctx context.Context, request *domain.CreateUs
 
 	err := c.Validator.Validate(request)
 	if err != nil {
-		c.Log.Warn("Invalid request body : %+v", err)
-		return nil, common.ErrBadRequest
+		c.Log.Warnf(ctx, "Invalid request body : %+v", err)
+		return nil, errors.DomainValidationError
 	}
 
 	total, err := c.UserRepository.CountById(ctx, request.ID)
 	if err != nil {
-		c.Log.Warn("Failed count user from database : %+v", err)
-		return nil, common.ErrInternalServer
+		c.Log.Warnf(ctx, "Failed count user from database : %+v", err)
+		return nil, errors.InternalServerError
 	}
 
 	if total > 0 {
-		c.Log.Warn("User already exists")
+		c.Log.Warn(ctx, "User already exists")
 		return nil, domain.ErrorAccountExisted
 	}
 
 	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.Log.Warn("Failed to generate bcrype hash : %+v", err)
-		return nil, common.ErrInternalServer
+		c.Log.Warnf(ctx, "Failed to generate bcrype hash : %+v", err)
+		return nil, errors.InternalServerError
 	}
 
 	user := &domain.User{
@@ -67,8 +67,8 @@ func (c *createUserHandler) Handle(ctx context.Context, request *domain.CreateUs
 	})
 
 	if err != nil {
-		c.Log.Warn("Failed create user to database : %+v", err)
-		return nil, common.ErrInternalServer
+		c.Log.Warnf(ctx, "Failed create user to database : %+v", err)
+		return nil, err
 	}
 
 	res := &domain.CreateUserResponse{}

@@ -31,13 +31,13 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 	request := new(domain.CreateUserRequest)
 	err := ctx.BodyParser(request)
 	if err != nil {
-		c.Log.Warn("Failed to parse request body : %+v", err)
+		c.Log.Warnf(ctx.UserContext(), "Failed to parse request body : %+v", err)
 		return fiber.ErrBadRequest
 	}
 
-	response, err := pipeline.Send[*domain.CreateUserRequest, *domain.CreateUserResponse](ctx.Context(), request)
+	response, err := pipeline.Send[*domain.CreateUserRequest, *domain.CreateUserResponse](ctx.UserContext(), request)
 	if err != nil {
-		c.Log.Warn("Failed to register user : %+v", err)
+		c.Log.Warnf(ctx.UserContext(), "Failed to register user : %+v", err)
 		return err
 	}
 
@@ -57,13 +57,13 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 	request := new(domain.LoginUserRequest)
 	err := ctx.BodyParser(request)
 	if err != nil {
-		c.Log.Warn("Failed to parse request body : %+v", err)
+		c.Log.Warnf(ctx.UserContext(), "Failed to parse request body : %+v", err)
 		return fiber.ErrBadRequest
 	}
 
-	response, err := pipeline.Send[*domain.LoginUserRequest, *domain.LoginUserResponse](ctx.Context(), request)
+	response, err := pipeline.Send[*domain.LoginUserRequest, *domain.LoginUserResponse](ctx.UserContext(), request)
 	if err != nil {
-		c.Log.Warn("Failed to login user : %+v", err)
+		c.Log.Warnf(ctx.UserContext(), "Failed to login user : %+v", err)
 		return err
 	}
 
@@ -86,9 +86,9 @@ func (c *UserController) Current(ctx *fiber.Ctx) error {
 		ID: auth.ID,
 	}
 
-	response, err := pipeline.Send[*domain.GetUserRequest, *domain.GetUserResponse](ctx.Context(), request)
+	response, err := pipeline.Send[*domain.GetUserRequest, *domain.GetUserResponse](ctx.UserContext(), request)
 	if err != nil {
-		c.Log.Warn("Failed to get current user")
+		c.Log.Warnf(ctx.UserContext(), "Failed to get current user")
 		return err
 	}
 
@@ -113,7 +113,7 @@ func (c *UserController) Logout(ctx *fiber.Ctx) error {
 
 	response, err := pipeline.Send[*domain.LogoutUserRequest, bool](ctx.UserContext(), request)
 	if err != nil {
-		c.Log.Warn("Failed to logout user")
+		c.Log.Warnf(ctx.UserContext(), "Failed to logout user")
 		return err
 	}
 
@@ -135,14 +135,14 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 
 	request := new(domain.UpdateUserRequest)
 	if err := ctx.BodyParser(request); err != nil {
-		c.Log.Warn("Failed to parse request body : %+v", err)
+		c.Log.Warnf(ctx.UserContext(), "Failed to parse request body : %+v", err)
 		return fiber.ErrBadRequest
 	}
 
 	request.ID = auth.ID
 	response, err := pipeline.Send[*domain.UpdateUserRequest, *domain.UpdateUserResponse](ctx.UserContext(), request)
 	if err != nil {
-		c.Log.Warn("Failed to update user")
+		c.Log.Warn(ctx.UserContext(), "Failed to update user")
 		return err
 	}
 

@@ -21,13 +21,13 @@ var Module = fx.Module("main",
 	fx.Provide(bootstrap.GetLogger),
 	fx.Provide(bootstrap.GetConfigure),
 	fx.Provide(bootstrap.GetServerConfig),
-	fx.Provide(bootstrap.GetDatabaseConfig),
-	fx.Provide(bootstrap.GetTracingConfig),
+	fx.Provide(bootstrap.GetUserDatabaseConfig),
 	fx.Provide(bootstrap.GetValidator),
 	fx.Provide(bootstrap.GetDatabaseConnector),
 	fx.Provide(bootstrap.GetUserDatabase),
-	fx.Provide(bootstrap.GetTracer),
 	fx.Provide(data.NewUserRepository),
+	fx.Provide(bootstrap.GetTracer),
+
 	fx.Provide(controller.NewUserController),
 	fx.Provide(middleware.NewAuthMiddleware),
 	fx.Provide(bootstrap.NewHealthChecker),
@@ -64,6 +64,7 @@ func main() {
 		Module,
 		fx.Invoke(run),
 	).Run()
+
 }
 
 func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, log logger.Logger, conf *bootstrap.ServerConfig, shutdowner fx.Shutdowner) {
@@ -75,7 +76,7 @@ func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, log logg
 			// start HTTP server
 			go func() {
 				if err := http.Start(gCtx); err != nil {
-					log.Fatal("Failed to start HTTP server: %s", err)
+					log.Fatal(ctx, "Failed to start HTTP server: %s", err)
 					errChan <- err
 					cancel()
 					shutdowner.Shutdown()
@@ -85,7 +86,7 @@ func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, log logg
 			// start GRPC server
 			go func() {
 				if err := grpc.Start(gCtx); err != nil {
-					log.Fatal("Failed to start GRPC server: %s", err)
+					log.Fatal(ctx, "Failed to start GRPC server: %s", err)
 					errChan <- err
 					cancel()
 					shutdowner.Shutdown()

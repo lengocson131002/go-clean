@@ -1,77 +1,30 @@
-// Package trace provides an interface for distributed tracing
 package trace
 
-import (
-	"context"
-	"time"
+import "context"
 
-	"github.com/lengocson131002/go-clean/pkg/metadata"
-	"github.com/lengocson131002/go-clean/pkg/transport/headers"
-)
+type SpanFinishFunc func(context.Context, interface{})
 
-// Tracer is an interface for distributed tracing.
+type SpanInfo struct {
+	TraceID string
+	SpanID  string
+}
+
 type Tracer interface {
-	// Start a trace
-	Start(ctx context.Context, name string) (context.Context, *Span)
-	// Finish the trace
-	Finish(*Span) error
-	// Read the traces
-	Read(...ReadOption) ([]*Span, error)
-}
+	// Extract span info from the context
+	ExtractSpanInfo(context.Context) *SpanInfo
 
-// SpanType describe the nature of the trace span.
-type SpanType int
+	// Used for tracing HTTP Client Call
+	StartHttpClientTrace(ctx context.Context, spanName string, opts ...HttpClientTraceOption) (context.Context, HttpClientTraceFinishFunc)
 
-const (
-	// SpanTypeRequestInbound is a span created when serving a request.
-	SpanTypeRequestInbound SpanType = iota
-	// SpanTypeRequestOutbound is a span created when making a service call.
-	SpanTypeRequestOutbound
-)
+	// Used for tracing GRPC Client Call
+	StartGrpcClientTrace(ctx context.Context, spanName string, opts ...GrpcTraceOption) (context.Context, GrpcTraceFinishFunc)
 
-// Span is used to record an entry.
-type Span struct {
-	// Start time
-	Started time.Time
-	// associated data
-	Metadata map[string]string
-	// Id of the trace
-	Trace string
-	// name of the span
-	Name string
-	// id of the span
-	Id string
-	// parent span id
-	Parent string
-	// Duration in nano seconds
-	Duration time.Duration
-	// Type
-	Type SpanType
-}
+	// Used for tracing DATABASE call
+	StartDatabaseTrace(ctx context.Context, spanName string, opts ...DatabaseTraceOption) (context.Context, DatabaseTraceFinishFunc)
 
-// FromContext returns a span from context.
-func FromContext(ctx context.Context) (traceID string, parentSpanID string, isFound bool) {
-	traceID, traceOk := metadata.Get(ctx, headers.TraceIDKey)
-	microID, microOk := metadata.Get(ctx, headers.ID)
+	// Used for tracing other external services (queue, cache,...)
+	StartExternalTrace(ctx context.Context, spanName string, opts ...ExternalTraceOption) (context.Context, ExternalTraceFinishFunc)
 
-	if !traceOk && !microOk {
-		isFound = false
-		return
-	}
-
-	if !traceOk {
-		traceID = microID
-	}
-
-	parentSpanID, ok := metadata.Get(ctx, headers.SpanID)
-
-	return traceID, parentSpanID, ok
-}
-
-// ToContext saves the trace and span ids in the context.
-func ToContext(ctx context.Context, traceID, parentSpanID string) context.Context {
-	return metadata.MergeContext(ctx, map[string]string{
-		headers.TraceIDKey: traceID,
-		headers.SpanID:     parentSpanID,
-	}, true)
+	// Used for tracing interal functions
+	StartInternalTrace(ctx context.Context, spanName string, opts ...InternalTraceOption) (context.Context, InternalTraceFinishFunc)
 }

@@ -1,7 +1,5 @@
 package http
 
-import "github.com/lengocson131002/go-clean/pkg/common"
-
 // DataResponse[T]
 // @Description Base Generic Response Body
 type DataResponse[T any] struct {
@@ -11,11 +9,12 @@ type DataResponse[T any] struct {
 	Data    T      `json:"data"`
 }
 
-func SuccessResponse[T any](data T) *DataResponse[T] {
-	return &DataResponse[T]{
-		Status:  common.Success.Status,
-		Code:    common.Success.Code,
-		Message: common.Success.Message,
+func SuccessResponse[T any](data T) DataResponse[T] {
+	var sucRes = DefaultSuccessResponse
+	return DataResponse[T]{
+		Status:  sucRes.Status,
+		Code:    sucRes.Code,
+		Message: sucRes.Message,
 		Data:    data,
 	}
 }

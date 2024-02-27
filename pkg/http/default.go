@@ -1,19 +1,17 @@
 package http
 
-import "github.com/lengocson131002/go-clean/pkg/common"
-
 var (
 	DefaultSuccessResponse = DataResponse[interface{}]{
-		Status:  common.Success.Status,
-		Code:    common.Success.Code,
-		Message: common.Success.Message,
+		Status:  200,
+		Code:    0,
+		Message: "Success",
 		Data:    nil,
 	}
 
 	DefaultErrorResponse = DataResponse[interface{}]{
-		Status:  common.ErrInternalServer.Status,
-		Code:    common.ErrInternalServer.Status,
-		Message: common.ErrInternalServer.Message,
+		Status:  500,
+		Code:    500,
+		Message: "Internal Server Error",
 		Data:    nil,
 	}
 )

@@ -19,15 +19,15 @@ func NewAuthMiddleware(log logger.Logger) *AuthMiddleware {
 
 func (m *AuthMiddleware) Handle(ctx *fiber.Ctx) error {
 	request := &domain.VerifyUserRequest{Token: ctx.Get("Authorization", "NOT_FOUND")}
-	m.log.Debug("Authorization : %s", request.Token)
+	m.log.Debugf(ctx.Context(), "Authorization : %s", request.Token)
 
 	auth, err := pipeline.Send[*domain.VerifyUserRequest, *domain.VerifyUserResponse](ctx.Context(), request)
 	if err != nil {
-		m.log.Warn("Failed find user by token : %+v", err)
+		m.log.Warnf(ctx.Context(), "Failed find user by token : %+v", err)
 		return fiber.ErrUnauthorized
 	}
 
-	m.log.Debug("User : %+v", auth.ID)
+	m.log.Debugf(ctx.Context(), "User : %+v", auth.ID)
 	ctx.Locals("auth", auth)
 	return ctx.Next()
 }
