@@ -41,6 +41,20 @@ func NewT24MqClient(
 	}
 }
 
+type t24MQOpenAccountXmlRequest struct {
+	XMLName         xml.Name `xml:"ROOT"` // root xml
+	CIF             int      `xml:"CIF"`
+	AccountTitle    string   `xml:"accountTitle"`
+	ShortName       string   `xml:"shortName"`
+	Category        string   `xml:"category"`
+	RmCode          string   `xml:"rmCode"`
+	BranchCode      string   `xml:"branchCode"`
+	PostingRestrict string   `xml:"postingRestrict"`
+	Program         string   `xml:"program"`
+	Currency        string   `xml:"currency"`
+	T24User         string   `xml:"t24User"`
+}
+
 type templateEntity struct {
 	name     string `db:"template_name"`
 	request  string `db:"template_request"`
@@ -60,8 +74,20 @@ func (c *t24MqClient) ExceuteOpenAccount(ctx context.Context, request *outbound.
 		return nil, err
 	}
 
-	// Step 2: Create T24 of request
-	xml, err := xml.Marshal(request)
+	// Step 2: Create T24 request
+	xml, err := xml.Marshal(&t24MQOpenAccountXmlRequest{
+		CIF:             request.CIF,
+		AccountTitle:    request.AccountTitle,
+		ShortName:       request.ShortName,
+		Category:        request.Category,
+		Program:         request.Program,
+		RmCode:          request.RmCode,
+		BranchCode:      request.BranchCode,
+		PostingRestrict: request.PostingRestrict,
+		Currency:        request.Currency,
+		T24User:         c.t24Cfg.Username,
+	})
+
 	if err != nil {
 		return nil, err
 	}
