@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	dErrors "github.com/lengocson131002/go-clean/pkg/errors"
-	"github.com/lengocson131002/go-clean/pkg/http"
+	"github.com/lengocson131002/go-clean/pkg/transport/http"
 )
 
 func CustomErrorHandler(ctx *fiber.Ctx, err error) error {

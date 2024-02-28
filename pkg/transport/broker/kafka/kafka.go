@@ -12,13 +12,17 @@ import (
 	"github.com/lengocson131002/go-clean/pkg/transport/broker"
 )
 
+var (
+	DefaultLogger = logrus.NewLogrusLogger()
+)
+
 type kBroker struct {
 	addrs []string
 
 	c sarama.Client       // broker connection client
 	p sarama.SyncProducer // producer
 
-	sc []sarama.Client // subscription connectiion clients
+	sc []sarama.Client // subscription connection clients
 
 	connected bool
 	scMutex   sync.Mutex
@@ -28,7 +32,7 @@ type kBroker struct {
 func NewKafkaBroker(opts ...broker.BrokerOption) broker.Broker {
 	options := broker.BrokerOptions{
 		Context: context.Background(),
-		Logger:  logrus.NewLogrusLogger(), // using logrus logging by default
+		Logger:  DefaultLogger, // using logrus logging by default
 	}
 
 	for _, o := range opts {
@@ -181,13 +185,14 @@ func (k *kBroker) Options() broker.BrokerOptions {
 }
 
 func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.PublishOption) error {
-	b, err := json.Marshal(msg)
+	// TODO: fix me
+	_, err := json.Marshal(msg.Body)
 	if err != nil {
 		return err
 	}
 	_, _, err = k.p.SendMessage(&sarama.ProducerMessage{
 		Topic: topic,
-		Value: sarama.ByteEncoder(b),
+		Value: sarama.StringEncoder(msg.Body),
 	})
 
 	return err
@@ -211,7 +216,8 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	if err != nil {
 		return nil, err
 	}
-	h := &consumerGroupHandler{
+
+	csHandler := &consumerGroupHandler{
 		handler: handler,
 		subopts: opt,
 		kopts:   k.opts,
@@ -226,21 +232,17 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			select {
 			case err := <-cg.Errors():
 				if err != nil {
-					if logger := k.getLogger(); logger != nil {
-						logger.Errorf(ctx, "consumer error:", err)
-					}
+					k.getLogger().Errorf(ctx, "consumer error:", err)
 				}
 			default:
-				err := cg.Consume(ctx, topics, h)
+				err := cg.Consume(ctx, topics, csHandler)
 				switch err {
 				case sarama.ErrClosedConsumerGroup:
 					return
 				case nil:
 					continue
 				default:
-					if logger := k.getLogger(); logger != nil {
-						logger.Errorf(ctx, "consumer error:", err)
-					}
+					k.getLogger().Errorf(ctx, "consumer error:", err)
 				}
 			}
 		}
@@ -255,6 +257,7 @@ func (k *kBroker) getBrokerConfig() *sarama.Config {
 	return DefaultBrokerConfig
 }
 
+// get config for broker
 func (k *kBroker) getClusterConfig() *sarama.Config {
 	if c, ok := k.opts.Context.Value(clusterConfigKey{}).(*sarama.Config); ok {
 		return c
@@ -272,6 +275,7 @@ func (k *kBroker) getClusterConfig() *sarama.Config {
 	return clusterConfig
 }
 
+// get config for clients
 func (k *kBroker) getSaramaClusterClient(topic string) (sarama.Client, error) {
 	config := k.getClusterConfig()
 	cs, err := sarama.NewClient(k.addrs, config)
@@ -285,7 +289,11 @@ func (k *kBroker) getSaramaClusterClient(topic string) (sarama.Client, error) {
 }
 
 func (k *kBroker) getLogger() logger.Logger {
-	return k.opts.Logger
+	logger := k.opts.Logger
+	if logger == nil {
+		logger = DefaultLogger
+	}
+	return logger
 }
 
 func (k *kBroker) String() string {

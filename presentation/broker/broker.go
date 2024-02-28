@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	RequestTopic = "go.test.clean.openacc.request"
-	ReplyTopic   = "go.test.clean.openacc.reply"
+	RequestTopic = "go.test.clean.request"
+	ReplyTopic   = "go.test.clean.reply"
 )
 
 type BrokerServer struct {
@@ -35,6 +35,7 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 
 	// create t24 account
 	// controller API
+
 	s.broker.Subscribe(RequestTopic, func(e broker.Event) error {
 		if e.Message() == nil {
 			// ignore
@@ -48,7 +49,7 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 		}
 
 		var t24RequestModel *domain.OpenAccountRequest
-		err := json.Unmarshal(body, t24RequestModel)
+		err := json.Unmarshal(body, &t24RequestModel)
 		if err != nil {
 			return err
 		}

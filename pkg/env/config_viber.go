@@ -2,6 +2,7 @@ package env
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -17,12 +18,20 @@ type ConfigFile string
 
 func NewViperConfig(f *ConfigFile) *ViperConfig {
 	viper := viper.New()
-	viper.SetConfigFile(string(*f))
-	viper.AutomaticEnv()
-	err := viper.ReadInConfig()
 
-	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %w \n", err))
+	viper.AutomaticEnv()
+
+	// check if config file exists
+	if f != nil {
+		cfgFile := string(*f)
+		if _, err := os.Stat(cfgFile); err == nil {
+			viper.SetConfigFile(cfgFile)
+			err := viper.ReadInConfig()
+			if err != nil {
+				panic(fmt.Errorf("Fatal error config file: %w \n", err))
+			}
+
+		}
 	}
 
 	return &ViperConfig{
