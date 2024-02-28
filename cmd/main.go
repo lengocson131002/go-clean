@@ -9,6 +9,7 @@ import (
 	"github.com/lengocson131002/go-clean/infras/outbound"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	"github.com/lengocson131002/go-clean/pkg/xslt"
+	"github.com/lengocson131002/go-clean/presentation/broker"
 	gprc "github.com/lengocson131002/go-clean/presentation/grpc"
 	"github.com/lengocson131002/go-clean/presentation/http"
 	"github.com/lengocson131002/go-clean/presentation/http/controller"
@@ -45,8 +46,12 @@ var Module = fx.Module("main",
 	fx.Provide(bootstrap.NewMetricBehavior),
 	fx.Provide(bootstrap.NewErrorHandlingBehavior),
 
+	fx.Provide(bootstrap.GetKafkaBroker),
+
 	fx.Provide(http.NewHttpServer),
 	fx.Provide(gprc.NewGrpcServer),
+	fx.Provide(broker.NewBrokerServer),
+
 	fx.Provide(bootstrap.GetYugabyteConfig),
 	fx.Provide(bootstrap.GetMasterDataDatabase),
 	fx.Provide(data.NewMasterDataRepository),
@@ -67,7 +72,7 @@ func main() {
 
 }
 
-func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, log logger.Logger, conf *bootstrap.ServerConfig, shutdowner fx.Shutdowner) {
+func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, broker *broker.BrokerServer, log logger.Logger, conf *bootstrap.ServerConfig, shutdowner fx.Shutdowner) {
 	gCtx, cancel := context.WithCancel(context.Background())
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -87,6 +92,16 @@ func run(lc fx.Lifecycle, http *http.HttpServer, grpc *gprc.GrpcServer, log logg
 			go func() {
 				if err := grpc.Start(gCtx); err != nil {
 					log.Fatal(ctx, "Failed to start GRPC server: %s", err)
+					errChan <- err
+					cancel()
+					shutdowner.Shutdown()
+				}
+			}()
+
+			// start BROKER server
+			go func() {
+				if err := broker.Start(gCtx); err != nil {
+					log.Fatalf(ctx, "Failed to start Broker server: %s", err)
 					errChan <- err
 					cancel()
 					shutdowner.Shutdown()

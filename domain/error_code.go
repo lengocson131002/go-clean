@@ -9,7 +9,7 @@ import (
 var (
 	// DOMAIN CUSTOM ERROR
 	ErrorAccountNotFound = &errors.DomainError{
-		Status:  http.StatusBadRequest,
+		Status:  http.StatusBadRequest, // http mapping
 		Code:    100,
 		Message: "User not found",
 	}

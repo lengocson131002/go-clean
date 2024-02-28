@@ -9,7 +9,7 @@ import (
 )
 
 type openAccountHandler struct {
-	t24mq outbound.T24MQClient
+	t24Client outbound.T24MQClient
 }
 
 func NewOpenAccountHandler(
@@ -19,11 +19,13 @@ func NewOpenAccountHandler(
 ) domain.OpenAccountHandler {
 
 	return &openAccountHandler{
-		t24mq: t24mq,
+		t24Client: t24mq,
 	}
 }
 
 func (h *openAccountHandler) Handle(ctx context.Context, req *domain.OpenAccountRequest) (*domain.OpenAccountResponse, error) {
+	//logic
+
 	t24Req := &outbound.T24MQOpenAccountRequest{
 		CIF:             req.CIF,
 		AccountTitle:    req.AccountTitle,
@@ -35,7 +37,8 @@ func (h *openAccountHandler) Handle(ctx context.Context, req *domain.OpenAccount
 		Program:         req.Program,
 		Currency:        req.Currency,
 	}
-	t24Res, err := h.t24mq.ExceuteOpenAccount(ctx, t24Req)
+
+	t24Res, err := h.t24Client.ExceuteOpenAccount(ctx, t24Req)
 	if err != nil {
 		return nil, err
 	}
@@ -44,4 +47,5 @@ func (h *openAccountHandler) Handle(ctx context.Context, req *domain.OpenAccount
 		CIF:    t24Res.CIF,
 		Status: t24Res.Status,
 	}, nil
+
 }

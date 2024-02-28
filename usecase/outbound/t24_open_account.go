@@ -20,6 +20,7 @@ type T24MQOpenAccountResponse struct {
 	CIF    int
 	Status string
 }
+
 type T24MQClient interface {
 	ExceuteOpenAccount(ctx context.Context, request *T24MQOpenAccountRequest) (*T24MQOpenAccountResponse, error)
 }
