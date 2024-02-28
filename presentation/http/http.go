@@ -17,7 +17,6 @@ import (
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	"github.com/lengocson131002/go-clean/presentation/http/controller"
 	"github.com/lengocson131002/go-clean/presentation/http/handler"
-	"github.com/lengocson131002/go-clean/presentation/http/middleware"
 	"github.com/lengocson131002/go-clean/presentation/http/route"
 )
 
@@ -25,9 +24,7 @@ type HttpServer struct {
 	cfg               *bootstrap.ServerConfig
 	logger            logger.Logger
 	healhChecker      healthchecks.HealthChecker
-	userController    *controller.UserController
 	t24AccConntroller *controller.T24AccountController
-	authMiddleware    *middleware.AuthMiddleware
 }
 
 // @title  CLEAN ARCHITECTURE DEMO
@@ -43,16 +40,12 @@ func NewHttpServer(
 	cfg *bootstrap.ServerConfig,
 	logger logger.Logger,
 	healhChecker healthchecks.HealthChecker,
-	userController *controller.UserController,
-	t24AccConntroller *controller.T24AccountController,
-	authMiddleware *middleware.AuthMiddleware) *HttpServer {
+	t24AccConntroller *controller.T24AccountController) *HttpServer {
 	return &HttpServer{
 		cfg:               cfg,
 		logger:            logger,
 		healhChecker:      healhChecker,
-		userController:    userController,
 		t24AccConntroller: t24AccConntroller,
-		authMiddleware:    authMiddleware,
 	}
 }
 
@@ -106,7 +99,6 @@ func (s *HttpServer) Start(ctx context.Context) error {
 	v1 := api.Group("/v1")
 
 	// Register routes
-	route.RegisterUserRoute(&v1, s.userController, s.authMiddleware)
 	route.RegisterT24Route(&v1, s.t24AccConntroller)
 
 	go func() {
@@ -131,7 +123,5 @@ func (s *HttpServer) Start(ctx context.Context) error {
 }
 
 type Router struct {
-	Root           *fiber.App
-	UserController *controller.UserController
-	AuthMiddleware middleware.AuthMiddleware
+	Root *fiber.App
 }

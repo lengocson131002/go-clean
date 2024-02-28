@@ -147,12 +147,6 @@ func (b *RequestLoggingBehavior) Handle(ctx context.Context, request interface{}
 
 func RegisterPipeline(
 	// request handlers
-	verifyUserHandler domain.VerifyUserHandler,
-	loginUserHandler domain.LoginUserHandler,
-	createUserHandler domain.CreateUserHandler,
-	getUserHandler domain.GetUserHandler,
-	logoutUserHandler domain.LogoutUserHandler,
-	updateUserHandler domain.UpdateUserHandler,
 	openAccountHandler domain.OpenAccountHandler,
 
 	// request behaviors
@@ -163,12 +157,6 @@ func RegisterPipeline(
 
 ) {
 	// Register request handlers
-	pipeline.RegisterRequestHandler[*domain.VerifyUserRequest, *domain.VerifyUserResponse](verifyUserHandler)
-	pipeline.RegisterRequestHandler[*domain.CreateUserRequest, *domain.CreateUserResponse](createUserHandler)
-	pipeline.RegisterRequestHandler[*domain.GetUserRequest, *domain.GetUserResponse](getUserHandler)
-	pipeline.RegisterRequestHandler[*domain.LogoutUserRequest, bool](logoutUserHandler)
-	pipeline.RegisterRequestHandler[*domain.UpdateUserRequest, *domain.UpdateUserResponse](updateUserHandler)
-	pipeline.RegisterRequestHandler[*domain.LoginUserRequest, *domain.LoginUserResponse](loginUserHandler)
 	pipeline.RegisterRequestHandler[*domain.OpenAccountRequest, *domain.OpenAccountResponse](openAccountHandler)
 
 	// Register request behaviors

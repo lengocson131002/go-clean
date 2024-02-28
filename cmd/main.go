@@ -13,7 +13,6 @@ import (
 	gprc "github.com/lengocson131002/go-clean/presentation/grpc"
 	"github.com/lengocson131002/go-clean/presentation/http"
 	"github.com/lengocson131002/go-clean/presentation/http/controller"
-	"github.com/lengocson131002/go-clean/presentation/http/middleware"
 	"github.com/lengocson131002/go-clean/usecase"
 	"go.uber.org/fx"
 )
@@ -22,23 +21,12 @@ var Module = fx.Module("main",
 	fx.Provide(bootstrap.GetLogger),
 	fx.Provide(bootstrap.GetConfigure),
 	fx.Provide(bootstrap.GetServerConfig),
-	fx.Provide(bootstrap.GetUserDatabaseConfig),
 	fx.Provide(bootstrap.GetValidator),
 	fx.Provide(bootstrap.GetDatabaseConnector),
-	fx.Provide(bootstrap.GetUserDatabase),
-	fx.Provide(data.NewUserRepository),
 	fx.Provide(bootstrap.GetTracer),
 
-	fx.Provide(controller.NewUserController),
-	fx.Provide(middleware.NewAuthMiddleware),
 	fx.Provide(bootstrap.NewHealthChecker),
 
-	fx.Provide(usecase.NewVerifyUserHandler),
-	fx.Provide(usecase.NewCreateUserHandler),
-	fx.Provide(usecase.NewGetUserHandler),
-	fx.Provide(usecase.NewLogoutUserHandler),
-	fx.Provide(usecase.NewUpdateUserHandler),
-	fx.Provide(usecase.NewLoginUserHandler),
 	fx.Provide(usecase.NewOpenAccountHandler),
 
 	fx.Provide(bootstrap.NewRequestLoggingBehavior),
