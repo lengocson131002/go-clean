@@ -71,7 +71,7 @@ type SubscribeOption func(*SubscribeOptions)
 type SubscribeOptions struct {
 	Context context.Context
 
-	Queue string
+	Group string
 
 	// AutoAck defaults to true. When a handler returns
 	// with a nil error the message is acked.
@@ -84,9 +84,9 @@ func WithSubscribeContext(ctx context.Context) SubscribeOption {
 	}
 }
 
-func WithSubscribeQueue(q string) SubscribeOption {
+func WithSubscribeGroup(gr string) SubscribeOption {
 	return func(opts *SubscribeOptions) {
-		opts.Queue = q
+		opts.Group = gr
 	}
 }
 

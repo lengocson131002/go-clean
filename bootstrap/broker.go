@@ -16,7 +16,10 @@ func GetKafkaBroker(cfg config.Configure, logger logger.Logger) broker.Broker {
 		Addresses: strings.Split(addrs, ","),
 	}
 
-	br, err := kafka.GetKafkaBroker(config, broker.WithLogger(logger))
+	br, err := kafka.GetKafkaBroker(
+		config,
+		broker.WithLogger(logger),
+	)
 
 	if err != nil {
 		logger.Error(context.TODO(), "Failted to create kafka broker")

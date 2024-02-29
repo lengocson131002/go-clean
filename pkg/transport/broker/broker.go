@@ -27,9 +27,16 @@ type Message struct {
 
 // Event is given to a subscription handler for processing.
 type Event interface {
+	// return event's topic
 	Topic() string
+
+	// return event's message
 	Message() *Message
+
+	// mark event as processed
 	Ack() error
+
+	// return error if event has error occurred
 	Error() error
 }
 

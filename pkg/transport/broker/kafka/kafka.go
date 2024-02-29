@@ -190,7 +190,7 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {
 	opt := broker.SubscribeOptions{
 		AutoAck: true,
-		Queue:   uuid.New().String(),
+		Group:   uuid.New().String(),
 	}
 
 	for _, o := range opts {
@@ -201,7 +201,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	if err != nil {
 		return nil, err
 	}
-	cg, err := sarama.NewConsumerGroupFromClient(opt.Queue, c)
+	cg, err := sarama.NewConsumerGroupFromClient(opt.Group, c)
 	if err != nil {
 		return nil, err
 	}

@@ -33,29 +33,15 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 		s.logger.Infof(ctx, "Connected to broker server")
 	}
 
-	// create t24 account
-
-	// SERVICE A (Client):
-	// Step 1: Gửi requset, tạo Signal ID
-
-	// Step 2: Luôn lắng nghe response queue: khi có event -> trigger signal
-
-	// SERVICE B (Server):
-	// Step 1: Nhận request => Xử lý
-	// Step 2: Gửi response vào response queue
+	consumerGroupOption := broker.WithSubscribeGroup("group_name")
 
 	s.broker.Subscribe(RequestTopic, func(e broker.Event) error {
-		if e.Message() == nil {
-			// ignore
-			return &broker.EmptyRequestError{}
+		// Step 1: Nhận request và xử lý
+		if e.Message() == nil || len(e.Message().Body) == 0 {
+			return broker.EmptyRequestError{}
 		}
 
 		body := e.Message().Body
-
-		if len(body) == 0 {
-			return nil
-		}
-
 		var t24RequestModel *domain.OpenAccountRequest
 		err := json.Unmarshal(body, &t24RequestModel)
 		if err != nil {
@@ -73,12 +59,13 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 			return err
 		}
 
+		// Step 2:
 		s.broker.Publish(ReplyTopic, &broker.Message{
 			Body: resByte,
 		})
 
 		return nil
-	})
+	}, consumerGroupOption)
 
 	return err
 }
