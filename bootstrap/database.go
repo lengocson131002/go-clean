@@ -56,6 +56,8 @@ func GetDatabaseConnector() database.DatabaseConnector {
 func GetMasterDataDatabase(y *YugabyteConfig, conn database.DatabaseConnector) *data.MasterDataDatabase {
 	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?%s", y.Username, y.Password, y.Host, y.Port, y.Database, fmt.Sprintf("sslmode=%s", y.SslMode))
 
+	fmt.Println("O DAY !!!!!!!!!!!!!!!!!!!! postgresql://%s:%s@%s:%d/%s?%s", y.Username, y.Password, y.Host, y.Port, y.Database, fmt.Sprintf("sslmode=%s", y.SslMode))
+
 	db, err := conn.Connect("postgres", dsn, &database.PoolOptions{
 		MaxIdleCount: y.IdleConnection,
 		MaxOpen:      y.MaxConnection,
