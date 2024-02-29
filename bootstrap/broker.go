@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/lengocson131002/go-clean/pkg/env"
+	"github.com/lengocson131002/go-clean/pkg/config"
 	"github.com/lengocson131002/go-clean/pkg/logger"
 	"github.com/lengocson131002/go-clean/pkg/transport/broker"
 	"github.com/lengocson131002/go-clean/pkg/transport/broker/kafka"
 )
 
-func GetKafkaBroker(cfg env.Configure, logger logger.Logger) broker.Broker {
+func GetKafkaBroker(cfg config.Configure, logger logger.Logger) broker.Broker {
 	var addrs = cfg.GetString("KAFKA_BROKERS")
 	var config = &kafka.KafkaBrokerConfig{
 		Addresses: strings.Split(addrs, ","),

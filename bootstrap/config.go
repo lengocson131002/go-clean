@@ -1,10 +1,8 @@
 package bootstrap
 
-import (
-	"github.com/lengocson131002/go-clean/pkg/env"
-)
+import "github.com/lengocson131002/go-clean/pkg/config"
 
-func GetConfigure() env.Configure {
-	var file env.ConfigFile = ".env"
-	return env.NewViperConfig(&file)
+func GetConfigure() config.Configure {
+	var file config.ConfigFile = ".env"
+	return config.NewViperConfig(&file)
 }

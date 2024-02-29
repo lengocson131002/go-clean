@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/lengocson131002/go-clean/infras/data"
+	"github.com/lengocson131002/go-clean/pkg/config"
 	"github.com/lengocson131002/go-clean/pkg/database"
-	"github.com/lengocson131002/go-clean/pkg/env"
 	_ "github.com/lib/pq"
 )
 
@@ -23,7 +23,7 @@ type YugabyteConfig struct {
 	MaxIdleTimeConnection int // seconds
 }
 
-func GetYugabyteConfig(cfg env.Configure) *YugabyteConfig {
+func GetYugabyteConfig(cfg config.Configure) *YugabyteConfig {
 	username := cfg.GetString("DB_YUGABYTE_USER")
 	password := cfg.GetString("DB_YUGABYTE_PASSWORD")
 	host := cfg.GetString("DB_YUGABYTE_HOST")

@@ -1,6 +1,6 @@
 package bootstrap
 
-import "github.com/lengocson131002/go-clean/pkg/env"
+import "github.com/lengocson131002/go-clean/pkg/config"
 
 type T24Config struct {
 	Username   string
@@ -15,7 +15,7 @@ type T24Config struct {
 	MqTimeout  int
 }
 
-func GetT24MqConfig(cfg env.Configure) *T24Config {
+func GetT24MqConfig(cfg config.Configure) *T24Config {
 	return &T24Config{
 		Username:   cfg.GetString("T24_USERNAME"),
 		MqHost:     cfg.GetString("T24_MQ_HOST"),

@@ -1,6 +1,6 @@
 package bootstrap
 
-import "github.com/lengocson131002/go-clean/pkg/env"
+import "github.com/lengocson131002/go-clean/pkg/config"
 
 type ServerConfig struct {
 	Name               string
@@ -13,7 +13,7 @@ type ServerConfig struct {
 	EnvFilePath        string
 }
 
-func GetServerConfig(cfg env.Configure) *ServerConfig {
+func GetServerConfig(cfg config.Configure) *ServerConfig {
 	name := cfg.GetString("APP_NAME")
 	version := cfg.GetString("APP_VERSION")
 	httpPort := cfg.GetInt("APP_HTTP_PORT")
