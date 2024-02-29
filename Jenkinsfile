@@ -5,7 +5,7 @@ def now = (new Date()).format("yyMMddHHmmss", TimeZone.getTimeZone('Asia/Ho_Chi_
 def mainPathSvc = 'integration/microservices/new-mcs'
 
 pipeline {
-    agent { label "Jenkins-Agent1" }
+    agent { label "server141" }
     environment {
         DOCKER_REGISTRY = 'DEV-ESB-Log:5000'
         // K8S_NAMESPACE = 'ocb-new-mcs'
