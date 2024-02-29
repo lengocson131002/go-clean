@@ -259,7 +259,7 @@ func (k *kBroker) getClusterConfig() *sarama.Config {
 	}
 
 	clusterConfig.Consumer.Return.Errors = true
-	clusterConfig.Consumer.Offsets.Initial = sarama.OffsetNewest
+	clusterConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 
 	return clusterConfig
 }
