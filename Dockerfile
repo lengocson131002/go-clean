@@ -1,4 +1,4 @@
-FROM 
+FROM DEV:ESB-Log:5000/ocb-base-image/golang-1.21.6
 
 WORKDIR /app
 
