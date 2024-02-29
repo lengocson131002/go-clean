@@ -20,6 +20,8 @@ pipeline {
         stage('Checkout and build') {
            steps {
                script {
+                    sh "ls"
+
                     artifactId =  "golang-clean-architecture"
                     dockerImage = DOCKER_REGISTRY + "/nghiant5/mcs-card-test/" + artifactId
                     dockerTag =  now
