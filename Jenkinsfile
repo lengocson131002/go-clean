@@ -34,7 +34,7 @@ pipeline {
                script {
                     artifactId =  "golang-clean-architecture"
                     dockerImage = DOCKER_REGISTRY + "/nghiant5/mcs-card-test/" + artifactId
-                    dockerTag = "${GIT_COMMIT}".substring(0, 8) + '_' + now
+                    dockerTag =  now
                }
            }
         }
