@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	dErrors "github.com/lengocson131002/go-clean/pkg/errors"
@@ -11,21 +12,21 @@ import (
 func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 	// default message
 	msg := http.DefaultErrorResponse
-	msg.Message = err.Error()
+	msg.Result.Message = err.Error()
 
 	// retrieve the custom status code if it's an fiber.*Error
 	var e *fiber.Error
 	if errors.As(err, &e) {
-		msg = http.DataResponse[interface{}]{
+		msg.Result = http.Result{
 			Status:  e.Code,
-			Code:    e.Code,
+			Code:    fmt.Sprintf("%v", e.Code),
 			Message: e.Message,
 		}
 	}
 
 	var businessErr *dErrors.DomainError
 	if errors.As(err, &businessErr) {
-		msg = http.DataResponse[interface{}]{
+		msg.Result = http.Result{
 			Status:  businessErr.Status,
 			Code:    businessErr.Code,
 			Message: businessErr.Message,
@@ -34,5 +35,5 @@ func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 
 	ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-	return ctx.Status(msg.Status).JSON(msg)
+	return ctx.Status(msg.Result.Status).JSON(msg)
 }

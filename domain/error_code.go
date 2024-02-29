@@ -10,13 +10,13 @@ var (
 	// DOMAIN CUSTOM ERROR
 	ErrorAccountNotFound = &errors.DomainError{
 		Status:  http.StatusBadRequest, // http mapping
-		Code:    100,
+		Code:    "100",
 		Message: "User not found",
 	}
 
 	ErrorAccountExisted = &errors.DomainError{
 		Status:  http.StatusBadRequest,
-		Code:    101,
+		Code:    "101",
 		Message: "User ID already existed",
 	}
 )

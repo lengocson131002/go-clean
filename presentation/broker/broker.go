@@ -34,12 +34,20 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 	}
 
 	// create t24 account
-	// controller API
+
+	// SERVICE A (Client):
+	// Step 1: Gửi requset, tạo Signal ID
+
+	// Step 2: Luôn lắng nghe response queue: khi có event -> trigger signal
+
+	// SERVICE B (Server):
+	// Step 1: Nhận request => Xử lý
+	// Step 2: Gửi response vào response queue
 
 	s.broker.Subscribe(RequestTopic, func(e broker.Event) error {
 		if e.Message() == nil {
 			// ignore
-			return nil
+			return &broker.EmptyRequestError{}
 		}
 
 		body := e.Message().Body
@@ -54,6 +62,7 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 			return err
 		}
 
+		// business logic
 		res, err := pipeline.Send[*domain.OpenAccountRequest, *domain.OpenAccountResponse](context.TODO(), t24RequestModel)
 		if err != nil {
 			return err

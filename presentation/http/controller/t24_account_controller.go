@@ -33,5 +33,5 @@ func (c *T24AccountController) OpenAccount(ctx *fiber.Ctx) error {
 	}
 
 	httpResp := http.SuccessResponse[*domain.OpenAccountResponse](response)
-	return ctx.Status(httpResp.Status).JSON(httpResp)
+	return ctx.Status(httpResp.Result.Status).JSON(httpResp)
 }

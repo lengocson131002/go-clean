@@ -1,4 +1,4 @@
-package http
+package broker
 
 type Result struct {
 	Status  int         `json:"-"`       // Http status code
@@ -15,7 +15,6 @@ type Response[T any] struct {
 var (
 	DefaultSuccessResponse = Response[interface{}]{
 		Result: Result{
-			Status:  200,
 			Code:    "0",
 			Message: "Success",
 		},
@@ -24,7 +23,6 @@ var (
 
 	DefaultErrorResponse = Response[interface{}]{
 		Result: Result{
-			Status:  500,
 			Code:    "1",
 			Message: "Internal Server Error",
 		},

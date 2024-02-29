@@ -2,18 +2,12 @@ package kafka
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 
 	"github.com/IBM/sarama"
 	"github.com/google/uuid"
 	"github.com/lengocson131002/go-clean/pkg/logger"
-	"github.com/lengocson131002/go-clean/pkg/logger/logrus"
 	"github.com/lengocson131002/go-clean/pkg/transport/broker"
-)
-
-var (
-	DefaultLogger = logrus.NewLogrusLogger()
 )
 
 type kBroker struct {
@@ -185,12 +179,7 @@ func (k *kBroker) Options() broker.BrokerOptions {
 }
 
 func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.PublishOption) error {
-	// TODO: fix me
-	_, err := json.Marshal(msg.Body)
-	if err != nil {
-		return err
-	}
-	_, _, err = k.p.SendMessage(&sarama.ProducerMessage{
+	_, _, err := k.p.SendMessage(&sarama.ProducerMessage{
 		Topic: topic,
 		Value: sarama.StringEncoder(msg.Body),
 	})

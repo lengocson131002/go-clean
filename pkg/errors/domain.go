@@ -4,7 +4,7 @@ import "net/http"
 
 type DomainError struct {
 	Status  int    // http status mapping
-	Code    int    // domain error code
+	Code    string // domain error code
 	Message string // domain error message
 }
 
@@ -15,7 +15,7 @@ func (err *DomainError) Error() string {
 var (
 	DomainValidationError = &DomainError{
 		Status:  http.StatusBadRequest,
-		Code:    1,
+		Code:    "2",
 		Message: "Validation error",
 	}
 )
