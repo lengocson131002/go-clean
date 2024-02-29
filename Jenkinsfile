@@ -16,18 +16,6 @@ pipeline {
     }
 
     stages {
-        stage("Cleanup Workspace") {
-            steps {
-                cleanWs()
-            }
-        }
-
-        stage("Checkout from SCM") {
-               steps {
-                   git branch: 'refactor-t24', credentialsId: 'github-nghia', url: 'https://github.com/lengocson131002/go-clean.git'
-               }
-
-        }
 
         stage('Checkout and build') {
            steps {
