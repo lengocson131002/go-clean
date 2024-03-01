@@ -13,15 +13,14 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout and build') {
            steps {
                script {
-                    sh "ls"
+                    sh "go test"
 
                     artifactId =  "golang-clean-architecture"
                     dockerImage = DOCKER_REGISTRY + "/nghiant5/mcs-card-test/" + artifactId
-                    dockerTag =  now
+                    dockerTag = "${GIT_COMMIT}".substring(0, 8) + '_' + now
                }
            }
         }
@@ -38,5 +37,27 @@ pipeline {
                 }
            }
        }
+        stage("Cleanup"){
+            steps {
+                script{
+                    sh "echo '\n>>>> Remove docker image'"
+                    sh "docker rmi ${dockerImage}:${dockerTag}"
+                }
+            }
+        }
+        //stage("Trivy Scan") {
+//            steps {
+//                script {
+//                    sh " trivy --skip-db-update --severity HIGH,MEDIUM,CRITICAL  image 10.96.24.141:5001/nghiant5/mcs-card-test/mcs-card:${dockerTag}"
+//                }
+//            }
+//     }
+    //    stage("Trigger CD Pipeline") {
+    //         steps {
+    //             script {
+    //                 sh "curl -v -k --user user:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'dockerTag=${dockerTag}' 'http://10.96.24.141:8080/job/PipelineHuyPham/job/nghiant5-pipeline/job/gitops-mcs-card-nghiant5/buildWithParameters?token=gitops-token'"
+    //             }
+    //         }
+    //     }
     }    
 }
