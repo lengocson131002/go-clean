@@ -130,13 +130,12 @@ func (b *RequestLoggingBehavior) Handle(ctx context.Context, request interface{}
 
 		requestJson, _ := json.Marshal(request)
 		responseJson, _ := json.Marshal(response)
-		errJson, _ := json.Marshal(err)
 
 		b.logger.Infof(ctx, "[Request Pipeline] Success: %t - Request: %s - Response: %s - Error: %s - Duration: %dms",
 			isSuccess,
 			string(requestJson),
 			string(responseJson),
-			string(errJson),
+			err,
 			time.Since(start).Milliseconds())
 	}()
 

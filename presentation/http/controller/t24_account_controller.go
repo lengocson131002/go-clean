@@ -22,13 +22,13 @@ func (c *T24AccountController) OpenAccount(ctx *fiber.Ctx) error {
 	request := new(domain.OpenAccountRequest)
 	err := ctx.BodyParser(request)
 	if err != nil {
-		c.Logger.Warn(ctx.UserContext(), "Failed to parse request body : %+v", err)
+		c.Logger.Warnf(ctx.UserContext(), "Failed to parse request body : %s", err)
 		return fiber.ErrBadRequest
 	}
 
 	response, err := pipeline.Send[*domain.OpenAccountRequest, *domain.OpenAccountResponse](ctx.UserContext(), request)
 	if err != nil {
-		c.Logger.Warn(ctx.UserContext(), "Failed to open account : %+v", err)
+		c.Logger.Warnf(ctx.UserContext(), "Failed to open account : %s", err)
 		return err
 	}
 

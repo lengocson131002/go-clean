@@ -2,17 +2,17 @@ package broker
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/lengocson131002/go-clean/domain"
 	"github.com/lengocson131002/go-clean/pkg/logger"
-	"github.com/lengocson131002/go-clean/pkg/pipeline"
 	"github.com/lengocson131002/go-clean/pkg/transport/broker"
 )
 
 const (
-	RequestTopic = "go.test.clean.request"
-	ReplyTopic   = "go.test.clean.reply"
+	RequestTopic  = "go.test.clean.request"
+	RequestTopicA = "go.test.clean.request.a"
+	ReplyTopic    = "go.test.clean.reply"
+	ReplyTopicA   = "go.test.clean.reply.a"
 )
 
 type BrokerServer struct {
@@ -33,39 +33,15 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 		s.logger.Infof(ctx, "Connected to broker server")
 	}
 
-	consumerGroupOption := broker.WithSubscribeGroup("group_name")
+	csGroupOpt := broker.WithSubscribeGroup("go_clean")
 
 	s.broker.Subscribe(RequestTopic, func(e broker.Event) error {
-		// Step 1: Nhận request và xử lý
-		if e.Message() == nil || len(e.Message().Body) == 0 {
-			return broker.EmptyRequestError{}
-		}
+		return HandleBrokerEvent[*domain.OpenAccountRequest, *domain.OpenAccountResponse](s.broker, e, ReplyTopic)
+	}, csGroupOpt)
 
-		body := e.Message().Body
-		var t24RequestModel *domain.OpenAccountRequest
-		err := json.Unmarshal(body, &t24RequestModel)
-		if err != nil {
-			return err
-		}
-
-		// business logic
-		res, err := pipeline.Send[*domain.OpenAccountRequest, *domain.OpenAccountResponse](context.TODO(), t24RequestModel)
-		if err != nil {
-			return err
-		}
-
-		resByte, err := json.Marshal(res)
-		if err != nil {
-			return err
-		}
-
-		// Step 2:
-		s.broker.Publish(ReplyTopic, &broker.Message{
-			Body: resByte,
-		})
-
-		return nil
-	}, consumerGroupOption)
+	s.broker.Subscribe(RequestTopicA, func(e broker.Event) error {
+		return HandleBrokerEvent[*domain.OpenAccountRequest, *domain.OpenAccountResponse](s.broker, e, ReplyTopicA)
+	}, csGroupOpt)
 
 	return err
 }

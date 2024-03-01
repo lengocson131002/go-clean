@@ -16,7 +16,6 @@ type KafkaBrokerConfig struct {
 	SASLEnabled   bool
 	SASLUser      string
 	SASLPassword  string
-	SASLHandshake bool
 	SASLAlgorithm string
 
 	TLSEnabled        bool

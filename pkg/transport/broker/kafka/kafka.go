@@ -246,7 +246,6 @@ func (k *kBroker) getBrokerConfig() *sarama.Config {
 	return DefaultBrokerConfig
 }
 
-// get config for broker
 func (k *kBroker) getClusterConfig() *sarama.Config {
 	if c, ok := k.opts.Context.Value(clusterConfigKey{}).(*sarama.Config); ok {
 		return c
