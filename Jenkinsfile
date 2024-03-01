@@ -6,6 +6,11 @@ def mainPathSvc = 'integration/microservices/new-mcs'
 
 pipeline {
     agent { label "server141" }
+
+    tools{
+        go 'go-1.21.6'
+    }
+
     environment {
         DOCKER_REGISTRY = 'DEV-ESB-Log:5000'
         K8S_CONTEXT = 'kubernetes-admin@kubernetes'
