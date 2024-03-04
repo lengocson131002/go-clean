@@ -297,35 +297,35 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 	)
 
 	// Subscribe for reply topic if didn't
-	// if _, ok := k.respSubscribers[replyTopic]; !ok {
-	replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
-		if e.Message() == nil {
-			return broker.EmptyRequestError{}
-		}
+	if _, ok := k.respSubscribers[replyTopic]; !ok {
+		replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
+			if e.Message() == nil {
+				return broker.EmptyRequestError{}
+			}
 
-		cId, correlationIdOk := e.Message().Headers[CorrelationIdHeader]
-		if !correlationIdOk {
+			cId, correlationIdOk := e.Message().Headers[CorrelationIdHeader]
+			if !correlationIdOk {
+				return nil
+			}
+
+			msgChan, msgChanOk := k.resps[cId]
+			if msgChanOk {
+				msgChan <- e.Message()
+			}
+
 			return nil
+		})
+
+		if err != nil {
+			return nil, err
 		}
 
-		msgChan, msgChanOk := k.resps[cId]
-		if msgChanOk {
-			msgChan <- e.Message()
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
+		k.respSubscribers[replyTopic] = replySub
 	}
-
-	k.respSubscribers[replyTopic] = replySub
-	// }
 
 	k.resps[correlationId] = make(chan *broker.Message, 1)
 
-	err = k.sendMessage(topic, msg)
+	err := k.sendMessage(topic, msg)
 	if err != nil {
 		return nil, err
 	}
