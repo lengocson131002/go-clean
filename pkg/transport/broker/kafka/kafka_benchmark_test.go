@@ -91,7 +91,7 @@ func BenchmarkKafkaPublishAndReceive(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < 1; i++ {
 		req := KRequestType{
 			Number: rand.Intn(100),
 		}

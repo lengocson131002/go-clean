@@ -291,41 +291,41 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 		msg.Headers[CorrelationIdHeader] = correlationId
 	}
 
-	k.resps[correlationId] = make(chan *broker.Message)
-
 	var (
 		replyTopic = options.ReplyToTopic
 		timeout    = options.Timeout
 	)
 
 	// Subscribe for reply topic if didn't
-	if _, ok := k.respSubscribers[replyTopic]; !ok {
-		replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
-			if e.Message() == nil {
-				return broker.EmptyRequestError{}
-			}
-
-			cId, correlationIdOk := e.Message().Headers[CorrelationIdHeader]
-			if !correlationIdOk {
-				return nil
-			}
-
-			msgChan, msgChanOk := k.resps[cId]
-			if msgChanOk {
-				msgChan <- e.Message()
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			return nil, err
+	// if _, ok := k.respSubscribers[replyTopic]; !ok {
+	replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
+		if e.Message() == nil {
+			return broker.EmptyRequestError{}
 		}
 
-		k.respSubscribers[replyTopic] = replySub
+		cId, correlationIdOk := e.Message().Headers[CorrelationIdHeader]
+		if !correlationIdOk {
+			return nil
+		}
+
+		msgChan, msgChanOk := k.resps[cId]
+		if msgChanOk {
+			msgChan <- e.Message()
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	err := k.sendMessage(topic, msg)
+	k.respSubscribers[replyTopic] = replySub
+	// }
+
+	k.resps[correlationId] = make(chan *broker.Message, 1)
+
+	err = k.sendMessage(topic, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -360,9 +360,9 @@ func (k *kBroker) sendMessage(topic string, msg *broker.Message) error {
 
 func (k *kBroker) toKafkaMessage(topic string, msg *broker.Message) *sarama.ProducerMessage {
 	kMsg := sarama.ProducerMessage{
-		Topic: topic,
-		Value: sarama.StringEncoder(msg.Body),
-		// Metadata: msg,
+		Topic:    topic,
+		Value:    sarama.StringEncoder(msg.Body),
+		Metadata: msg,
 	}
 
 	for k, v := range msg.Headers {
@@ -405,7 +405,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			select {
 			case err := <-cg.Errors():
 				if err != nil {
-					k.getLogger().Errorf(ctx, "consumer error: %v", err)
+					k.getLogger().Errorf(ctx, "consumer error: %s", err)
 				}
 			default:
 				err := cg.Consume(ctx, topics, csHandler)
@@ -415,11 +415,12 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 				case nil:
 					continue
 				default:
-					k.getLogger().Errorf(ctx, "consumer error: %v", err)
+					k.getLogger().Errorf(ctx, "consumer error: %s", err)
 				}
 			}
 		}
 	}()
+
 	return &subscriber{
 		k:    k,
 		cg:   cg,
