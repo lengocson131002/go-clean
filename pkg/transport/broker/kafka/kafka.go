@@ -307,7 +307,6 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 
 	// Subscribe for reply topic if didn't
 	if _, ok := k.respSubscribers[replyTopic]; !ok {
-		k.getLogger().Infof(context.Background(), "There is no subscription for reply topic %v. Creating...", replyTopic)
 		replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
 			if e.Message() == nil {
 				return broker.EmptyMessageError{}
@@ -338,6 +337,7 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 		// remove processed channel
 		delete(k.resps, correlationId)
 		return body, nil
+
 	case <-time.After(timeout):
 		// remove processed channel
 		delete(k.resps, correlationId)

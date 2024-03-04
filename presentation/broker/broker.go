@@ -33,7 +33,7 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 
 	csGroupOpt := broker.WithSubscribeGroup("go_clean")
 
-	s.broker.Subscribe(RequestTopic, func(e broker.Event) error {
+	_, err = s.broker.Subscribe(RequestTopic, func(e broker.Event) error {
 		return HandleBrokerEvent[*domain.OpenAccountRequest, *domain.OpenAccountResponse](s.broker, e, ReplyTopic)
 	}, csGroupOpt)
 
