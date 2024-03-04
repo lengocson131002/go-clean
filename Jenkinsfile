@@ -18,7 +18,20 @@ pipeline {
 
     }
 
+
     stages {
+
+        // stage('SonarQube Analysis') {
+        //   steps {
+        //       script {
+        //           sh "mvn clean verify sonar:sonar \
+        //                   -Dsonar.projectKey=N3zG0iYdVhAqTERQDXZZSDF7jK1vL5p99 \
+        //                   -Dsonar.projectName='mcs-card-nghiant-test' \
+        //                   -Dsonar.host.url=$JENKINS_SONAR_HOST \
+        //                   -Dsonar.token=$JENKINS_MCS_CARD_NGHIA_SONAR_TOKEN"
+        //       }
+        //   }
+        // }
         stage('Checkout and build') {
            steps {
                script {
