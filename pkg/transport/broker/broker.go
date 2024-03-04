@@ -10,6 +10,7 @@ type Broker interface {
 	Connect() error
 	Disconnect() error
 	Publish(topic string, m *Message, opts ...PublishOption) error
+	PublishAndReceive(topic string, m *Message, opts ...PublishOption) (*Message, error)
 	Subscribe(topic string, h Handler, opts ...SubscribeOption) (Subscriber, error)
 	String() string
 }

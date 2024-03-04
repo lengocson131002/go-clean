@@ -39,9 +39,5 @@ func (s *BrokerServer) Start(ctx context.Context) error {
 		return HandleBrokerEvent[*domain.OpenAccountRequest, *domain.OpenAccountResponse](s.broker, e, ReplyTopic)
 	}, csGroupOpt)
 
-	s.broker.Subscribe(RequestTopicA, func(e broker.Event) error {
-		return HandleBrokerEvent[*domain.OpenAccountRequest, *domain.OpenAccountResponse](s.broker, e, ReplyTopicA)
-	}, csGroupOpt)
-
 	return err
 }

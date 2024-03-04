@@ -37,7 +37,10 @@ func (h *consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 				return nil
 			}
 
-			var m = broker.Message{}
+			var m = broker.Message{
+				Headers: make(map[string]string),
+			}
+
 			for _, header := range msg.Headers {
 				m.Headers[string(header.Key)] = string(header.Value)
 			}

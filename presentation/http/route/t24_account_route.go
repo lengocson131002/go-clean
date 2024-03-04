@@ -9,4 +9,5 @@ func RegisterT24Route(root *fiber.Router, t24Con *controller.T24AccountControlle
 	t24Acc := (*root).Group("/t24/accounts")
 
 	t24Acc.Post("/open", t24Con.OpenAccount)
+	t24Acc.Post("/open-rpc", t24Con.OpenAccountRpc)
 }
