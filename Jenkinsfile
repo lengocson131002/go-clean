@@ -14,6 +14,7 @@ pipeline {
     environment {
         DOCKER_REGISTRY = 'DEV-ESB-Log:5000'
         K8S_CONTEXT = 'kubernetes-admin@kubernetes'
+        JENKINS_API_TOKEN = credentials('JENKINS_API_TOKEN')
 
     }
 
@@ -57,12 +58,12 @@ pipeline {
 //                }
 //            }
 //     }
-    //    stage("Trigger CD Pipeline") {
-    //         steps {
-    //             script {
-    //                 sh "curl -v -k --user user:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'dockerTag=${dockerTag}' 'http://10.96.24.141:8080/job/PipelineHuyPham/job/nghiant5-pipeline/job/gitops-mcs-card-nghiant5/buildWithParameters?token=gitops-token'"
-    //             }
-    //         }
-    //     }
+       stage("Trigger CD Pipeline") {
+            steps {
+                script {
+                    sh "curl -v -k --user user:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'dockerTag=${dockerTag}' 'http://10.96.24.141:8080/job/PipelineHuyPham/job/nghiant5-pipeline/job/gitops-go-clean-architecture/buildWithParameters?token=gitops-token'"
+                }
+            }
+        }
     }    
 }
