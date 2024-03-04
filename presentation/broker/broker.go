@@ -9,10 +9,8 @@ import (
 )
 
 const (
-	RequestTopic  = "go.test.clean.request"
-	RequestTopicA = "go.test.clean.request.a"
-	ReplyTopic    = "go.test.clean.reply"
-	ReplyTopicA   = "go.test.clean.reply.a"
+	RequestTopic = "go.test.clean.request"
+	ReplyTopic   = "go.test.clean.reply"
 )
 
 type BrokerServer struct {

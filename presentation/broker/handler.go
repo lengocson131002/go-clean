@@ -36,7 +36,7 @@ func HandleBrokerEvent[TReq any, TRes any](b broker.Broker, e broker.Event, repl
 
 func handleEvent[TReq any, TRes any](e broker.Event) (res TRes, err error) {
 	if e.Message() == nil || len(e.Message().Body) == 0 {
-		return *new(TRes), broker.EmptyRequestError{}
+		return *new(TRes), broker.EmptyMessageError{}
 	}
 
 	body := e.Message().Body

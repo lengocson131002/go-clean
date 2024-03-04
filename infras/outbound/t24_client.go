@@ -30,12 +30,12 @@ type t24MqClient struct {
 func NewT24MqClient(
 	t24Config *bootstrap.T24Config,
 	xslt xslt.Xslt,
-	mRepo data.MasterDataRepository,
+	// mRepo data.MasterDataRepository,
 	tracer trace.Tracer,
 ) outbound.T24MQClient {
 	return &t24MqClient{
 		t24Cfg: t24Config,
-		mRepo:  mRepo,
+		// mRepo:  mRepo,
 		xslt:   xslt,
 		tracer: tracer,
 	}

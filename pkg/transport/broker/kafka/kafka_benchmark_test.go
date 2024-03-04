@@ -54,7 +54,7 @@ func BenchmarkKafkaPublishAndReceive(b *testing.B) {
 	_, err = kBroker.Subscribe(requestTopic, func(e broker.Event) error {
 		msg := e.Message()
 		if msg == nil {
-			return broker.EmptyRequestError{}
+			return broker.EmptyMessageError{}
 		}
 
 		var req KRequestType

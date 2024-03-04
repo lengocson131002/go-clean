@@ -291,16 +291,26 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 		msg.Headers[CorrelationIdHeader] = correlationId
 	}
 
+	// send message to request topic
+	err := k.sendMessage(topic, msg)
+	if err != nil {
+		return nil, err
+	}
+
 	var (
 		replyTopic = options.ReplyToTopic
 		timeout    = options.Timeout
 	)
 
+	msgChan := make(chan *broker.Message, 1)
+	k.resps[correlationId] = msgChan
+
 	// Subscribe for reply topic if didn't
 	if _, ok := k.respSubscribers[replyTopic]; !ok {
+		k.getLogger().Infof(context.Background(), "There is no subscription for reply topic %v. Creating...", replyTopic)
 		replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
 			if e.Message() == nil {
-				return broker.EmptyRequestError{}
+				return broker.EmptyMessageError{}
 			}
 
 			cId, correlationIdOk := e.Message().Headers[CorrelationIdHeader]
@@ -323,15 +333,6 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 		k.respSubscribers[replyTopic] = replySub
 	}
 
-	k.resps[correlationId] = make(chan *broker.Message, 1)
-
-	err := k.sendMessage(topic, msg)
-	if err != nil {
-		return nil, err
-	}
-
-	// wait for the response message
-	msgChan := k.resps[correlationId]
 	select {
 	case body := <-msgChan:
 		// remove processed channel
