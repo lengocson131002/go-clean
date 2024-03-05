@@ -301,7 +301,6 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 
 	// Subscribe for reply topic if didn't
 	if _, ok := k.respSubscribers[replyTopic]; !ok {
-
 		var subOpts = make([]broker.SubscribeOption, 0)
 		if len(options.ReplyConsumerGroup) != 0 {
 			subOpts = append(subOpts, broker.WithSubscribeGroup(options.ReplyConsumerGroup))

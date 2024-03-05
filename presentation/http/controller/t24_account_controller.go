@@ -58,7 +58,7 @@ func (c *T24AccountController) OpenAccountRpc(ctx *fiber.Ctx) error {
 		"go.test.clean.request",
 		&broker.Message{Body: reqJson},
 		broker.WithPublishReplyToTopic("go.test.clean.reply"),
-		// broker.WithReplyConsumerGroup("go.test.reply"),
+		broker.WithReplyConsumerGroup("go.test.reply"),
 	)
 
 	if err != nil {
