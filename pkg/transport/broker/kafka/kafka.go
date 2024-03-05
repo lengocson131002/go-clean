@@ -291,12 +291,6 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 		msg.Headers[CorrelationIdHeader] = correlationId
 	}
 
-	// send message to request topic
-	err := k.sendMessage(topic, msg)
-	if err != nil {
-		return nil, err
-	}
-
 	var (
 		replyTopic = options.ReplyToTopic
 		timeout    = options.Timeout
@@ -307,6 +301,12 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 
 	// Subscribe for reply topic if didn't
 	if _, ok := k.respSubscribers[replyTopic]; !ok {
+
+		var subOpts = make([]broker.SubscribeOption, 0)
+		if len(options.ReplyConsumerGroup) != 0 {
+			subOpts = append(subOpts, broker.WithSubscribeGroup(options.ReplyConsumerGroup))
+		}
+
 		replySub, err := k.Subscribe(replyTopic, func(e broker.Event) error {
 			if e.Message() == nil {
 				return broker.EmptyMessageError{}
@@ -323,13 +323,19 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 			}
 
 			return nil
-		})
+		}, subOpts...)
 
 		if err != nil {
 			return nil, err
 		}
 
 		k.respSubscribers[replyTopic] = replySub
+	}
+
+	// send message to request topic
+	err := k.sendMessage(topic, msg)
+	if err != nil {
+		return nil, err
 	}
 
 	select {
@@ -397,6 +403,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		kopts:   k.opts,
 		cg:      cg,
 		logger:  k.getLogger(),
+		ready:   make(chan bool),
 	}
 
 	ctx := context.Background()
@@ -414,6 +421,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 				case sarama.ErrClosedConsumerGroup:
 					return
 				case nil:
+					csHandler.ready = make(chan bool)
 					continue
 				default:
 					k.getLogger().Errorf(ctx, "consumer error: %s", err)
@@ -421,6 +429,11 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			}
 		}
 	}()
+
+	// wait until consumer group running
+	<-csHandler.ready
+
+	k.getLogger().Infof(ctx, "Subcribed to topic: %s. Consumer group: %s", topic, opt.Group)
 
 	return &subscriber{
 		k:    k,

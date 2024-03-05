@@ -58,9 +58,10 @@ func WithBrokerTLSConfig(t *tls.Config) BrokerOption {
 type PublishOption func(*PublishOptions)
 
 type PublishOptions struct {
-	Context      context.Context
-	Timeout      time.Duration
-	ReplyToTopic string
+	Context            context.Context
+	Timeout            time.Duration
+	ReplyToTopic       string
+	ReplyConsumerGroup string
 }
 
 func WithPublishContext(ctx context.Context) PublishOption {
@@ -78,6 +79,12 @@ func WithPublishTimeout(timeout time.Duration) PublishOption {
 func WithPublishReplyToTopic(replyToTopic string) PublishOption {
 	return func(opts *PublishOptions) {
 		opts.ReplyToTopic = replyToTopic
+	}
+}
+
+func WithReplyConsumerGroup(cg string) PublishOption {
+	return func(opts *PublishOptions) {
+		opts.ReplyConsumerGroup = cg
 	}
 }
 

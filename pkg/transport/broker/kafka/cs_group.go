@@ -16,9 +16,11 @@ type consumerGroupHandler struct {
 	kopts   broker.BrokerOptions
 	cg      sarama.ConsumerGroup
 	sess    sarama.ConsumerGroupSession
+	ready   chan bool
 }
 
-func (*consumerGroupHandler) Setup(sarama.ConsumerGroupSession) error {
+func (h *consumerGroupHandler) Setup(sarama.ConsumerGroupSession) error {
+	close(h.ready)
 	return nil
 }
 
