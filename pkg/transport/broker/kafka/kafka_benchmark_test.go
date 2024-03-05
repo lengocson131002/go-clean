@@ -63,8 +63,6 @@ func BenchmarkKafka(b *testing.B) {
 			return broker.InvalidDataFormatError{}
 		}
 
-		b.Logf("Received request: %v", req)
-
 		result := KResponseType{
 			Result: math.Pow(float64(req.Number), 2),
 		}
@@ -91,6 +89,7 @@ func BenchmarkKafka(b *testing.B) {
 		b.Error(err)
 	}
 
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req := KRequestType{
 			Number: rand.Intn(100),
@@ -100,9 +99,11 @@ func BenchmarkKafka(b *testing.B) {
 			b.Error(err)
 		}
 
-		_, err = kBroker.PublishAndReceive(requestTopic, &broker.Message{
+		err = kBroker.Publish(requestTopic, &broker.Message{
 			Body: reqByte,
-		}, broker.WithPublishReplyToTopic(replyTopic))
+		},
+			broker.WithPublishReplyToTopic(replyTopic),
+			broker.WithReplyConsumerGroup("benchmark.test"))
 
 		if err != nil {
 			b.Logf("error: %v", err)

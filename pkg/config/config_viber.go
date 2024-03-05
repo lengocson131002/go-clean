@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -16,7 +15,7 @@ type ConfigPath string
 
 type ConfigFile string
 
-func NewViperConfig(f *ConfigFile) *ViperConfig {
+func NewViperConfig(f *ConfigFile) (*ViperConfig, error) {
 	viper := viper.New()
 
 	viper.AutomaticEnv()
@@ -28,15 +27,14 @@ func NewViperConfig(f *ConfigFile) *ViperConfig {
 			viper.SetConfigFile(cfgFile)
 			err := viper.ReadInConfig()
 			if err != nil {
-				panic(fmt.Errorf("Fatal error config file: %w \n", err))
+				return nil, err
 			}
-
 		}
 	}
 
 	return &ViperConfig{
 		cfg: viper,
-	}
+	}, nil
 }
 
 // Get implements ConfigInterface.

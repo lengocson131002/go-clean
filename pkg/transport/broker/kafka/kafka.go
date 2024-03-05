@@ -353,6 +353,16 @@ func (k *kBroker) PublishAndReceive(topic string, msg *broker.Message, opts ...b
 }
 
 func (k *kBroker) sendMessage(topic string, msg *broker.Message) error {
+	// create correlation ID for message
+	if msg.Headers == nil {
+		msg.Headers = make(map[string]string)
+	}
+
+	correlationId, ok := msg.Headers[CorrelationIdHeader]
+	if !ok || len(correlationId) == 0 {
+		msg.Headers[CorrelationIdHeader] = uuid.New().String()
+	}
+
 	kMsg := k.toKafkaMessage(topic, msg)
 	if k.ap != nil {
 		k.ap.Input() <- kMsg
