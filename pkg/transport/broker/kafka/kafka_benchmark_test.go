@@ -39,7 +39,7 @@ type KResponseType struct {
 	Result float64
 }
 
-func TestKafkaPublishAndReceive(b *testing.T) {
+func BenchmarkKafka(b *testing.B) {
 	var (
 		kBroker      = getKafkaBroker()
 		requestTopic = "go.clean.test.benchmark.request"
@@ -91,31 +91,21 @@ func TestKafkaPublishAndReceive(b *testing.T) {
 		b.Error(err)
 	}
 
-	req := KRequestType{
-		Number: rand.Intn(100),
-	}
-	reqByte, err := json.Marshal(req)
-	if err != nil {
-		b.Error(err)
-	}
-	msg, err := kBroker.PublishAndReceive(requestTopic, &broker.Message{
-		Body: reqByte,
-	}, broker.WithPublishReplyToTopic(replyTopic))
+	for i := 0; i < b.N; i++ {
+		req := KRequestType{
+			Number: rand.Intn(100),
+		}
+		reqByte, err := json.Marshal(req)
+		if err != nil {
+			b.Error(err)
+		}
 
-	if err != nil {
-		b.Logf("error: %v", err)
-	} else {
-		b.Logf("Received message: %s", string(msg.Body))
+		_, err = kBroker.PublishAndReceive(requestTopic, &broker.Message{
+			Body: reqByte,
+		}, broker.WithPublishReplyToTopic(replyTopic))
+
+		if err != nil {
+			b.Logf("error: %v", err)
+		}
 	}
-
-	msg2, err2 := kBroker.PublishAndReceive(requestTopic, &broker.Message{
-		Body: reqByte,
-	}, broker.WithPublishReplyToTopic(replyTopic))
-
-	if err2 != nil {
-		b.Logf("error: %v", err2)
-	} else {
-		b.Logf("Received message: %s", string(msg2.Body))
-	}
-
 }
